@@ -88,7 +88,7 @@ tagged = Tagged(mymodel, (:μ,:σ) )
 array_3dim = Baytes.trace_to_3DArray(trace5, mymodel, tagged, burnin, thinning)
 
 using MCMCChains
-MCMCChains.Chains(array_3dim, collect(keys(tagged.parameter)))
+MCMCChains.Chains(array_3dim, trace5.info.sampling.paramnames)
 ```
 
 ## Going Forward
