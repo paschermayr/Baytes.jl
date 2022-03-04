@@ -66,7 +66,7 @@ function diagnosticssummary(
             println("########################################## Chain ", Nchain, ":")
             println(Base.nameof(typeof(algorithmᵛ[Nchain][Nalgorithm])), " Diagnostics: ")
             results(
-                get_chaindiagnostics(trace, Nchain, Nalgorithm, thinning, burnin),
+                get_chaindiagnostics(trace, Nchain, Nalgorithm, burnin, thinning),
                 algorithmᵛ[Nchain][Nalgorithm],
                 Ndigits,
                 quantiles,
