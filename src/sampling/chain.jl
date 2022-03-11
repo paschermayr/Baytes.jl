@@ -156,7 +156,7 @@ function chainsummary(
     model::ModelWrapper,
     sym::S,
     backend, #i.e., Val(:text), or Val(:latex)
-    burnin::Integer, # =trace.info.burnin,
+    burnin::Integer,
     thinning::Integer,
     printdefault::PrintDefault=PrintDefault();
     kwargs...,
@@ -175,6 +175,7 @@ function chainsummary(
     ## Compute summary statistics
     #!NOTE If more than 1 chain used, can use cross-chain diagnostics
     if trace.info.sampling.Nchains > 1
+        #NOTE: Most of the computing time of the function happens here
         chainparamdiagnostic = chainparamdiagnostics(arr3D, computingtime)
     else
         chainparamdiagnostic = singlechaindiagnostics(arr3D, Nparams)

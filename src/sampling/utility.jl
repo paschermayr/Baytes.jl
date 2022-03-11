@@ -2,16 +2,36 @@
 """
 $(TYPEDEF)
 
+Contains several useful information for sampled parameter.
+
+# Fields
+$(TYPEDFIELDS)
+"""
+struct PrintedParameter{A<:Tuple, B<:Tuple}
+    "Unique tagged parameter of all kernels."
+    tagged::A
+    "Parameter names based on their dimension"
+    printed::B
+    function PrintedParameter(
+        tagged::A,
+        printed::B
+    ) where {A<:Tuple, B<:Tuple}
+        return new{A,B}(tagged, printed)
+    end
+end
+
+############################################################################################
+"""
+$(TYPEDEF)
+
 Contains several useful information for constructing sampler.
 
 # Fields
 $(TYPEDFIELDS)
 """
-struct SamplingInfo{U<:BaytesCore.UpdateBool, B<:BaytesCore.UpdateBool}
-    "Parameter names"
-    paramnames::Vector{String}
-    "Number of parameter "
-    Nparams::Int64
+struct SamplingInfo{A<:PrintedParameter, U<:BaytesCore.UpdateBool, B<:BaytesCore.UpdateBool}
+    "Parameter settings for printing."
+    printedparam::A
     "Total number of sampling iterations."
     iterations::Int64
     "Burnin iterations."
@@ -27,8 +47,7 @@ struct SamplingInfo{U<:BaytesCore.UpdateBool, B<:BaytesCore.UpdateBool}
     "Boolean if temperature is adapted for target function."
     tempered::B
     function SamplingInfo(
-        paramnames::Vector{String},
-        Nparams::Int64,
+        printedparam::A,
         iterations::Int64,
         burnin::Int64,
         thinning::Int64,
@@ -36,38 +55,9 @@ struct SamplingInfo{U<:BaytesCore.UpdateBool, B<:BaytesCore.UpdateBool}
         Nchains::Int64,
         captured::U,
         tempered::B
-    ) where {U<:BaytesCore.UpdateBool, B<:BaytesCore.UpdateBool}
-        ArgCheck.@argcheck length(paramnames) == Nparams
-        return new{U, B}(paramnames, Nparams, iterations, burnin, thinning, Nalgorithms, Nchains, captured, tempered)
+    ) where {A<:PrintedParameter, U<:BaytesCore.UpdateBool, B<:BaytesCore.UpdateBool}
+        return new{A, U, B}(printedparam, iterations, burnin, thinning, Nalgorithms, Nchains, captured, tempered)
     end
-end
-function SamplingInfo(
-    model::M,
-    iterations::Int64,
-    burnin::Int64,
-    thinning::Int64,
-    Nalgorithms::Int64,
-    Nchains::Int64,
-    captured::U,
-    tempered::B
-) where {M<:ModelWrapper,U<:BaytesCore.UpdateBool, B<:BaytesCore.UpdateBool}
-    ## Grab all available parameter for printing
-    paramnames = ModelWrappers.paramnames(
-        model.info.flattendefault, model.val, model.info.constraint
-    )
-    Nparams = length(paramnames)
-    ## Return SamplingInfo
-    return SamplingInfo(
-        paramnames,
-        Nparams,
-        iterations,
-        burnin,
-        thinning,
-        Nalgorithms,
-        Nchains,
-        captured,
-        tempered
-    )
 end
 
 ############################################################################################
@@ -130,25 +120,43 @@ Obtain all parameter where output diagnostics can be printed.
 ```
 
 """
-function printedparam(datatune::DataTune, model::ModelWrapper, algorithm...)
-    return keys(model.val)
+function printedparam(datatune::DataTune, sym, algorithm...)
+    return sym
 end
 function printedparam(
-    datatune::DataTune{<:D}, model::ModelWrapper, smc::SMCConstructor
+    datatune::DataTune{<:D}, sym, smc::SMCConstructor
 ) where {D<:Expanding}
     #!TDO: If SMC is applied on Expanding data sequence, latent data is expanding over time - no output diagnostics for this yet.
     return if smc.kernel == SMC2
-        Tuple(Base.setdiff(keys(model.val), (smc.kernel.propagation.sym,)))
+        Tuple(sym, (smc.kernel.propagation.sym,))
     else
-        keys(model.val)
+        sym
     end
 end
-function printedparam(
-    datatune::DataTune{<:D}, model::ModelWrapper, smc::SMC
-) where {D<:Expanding}
-    return keys(smc.tune.tagged.parameter)
-end
 
+"""
+$(SIGNATURES)
+Return all unique targetted parameter, and parameter where diagnostics will be printed.
+
+# Examples
+```julia
+```
+
+"""
+function showparam(model::ModelWrapper, datatune::DataTune, constructor...)
+    # Get all tracked symbols in constructor
+    sym = BaytesCore.to_Tuple.(map(BaytesCore.get_sym, constructor))
+    unique_sym = unique(collect(Iterators.flatten(sym)))
+    #println("All unique tagged parameter: ", unique_sym)
+    # Check if all tracked symbols are not fixed in model
+    ArgCheck.@argcheck all(haskey(model.val, symbol) for symbol in unique_sym)
+    # Check if one of the parameter has increasing dimension (SMC2)
+    printed_sym = printedparam(datatune, unique_sym, constructor)
+    # Check if any of the remaining parameter is fixed, and we can thus avoid printing
+    fixed = [model.info.constraint[sym] isa ModelWrappers.Fixed for sym in printed_sym]
+    # Return unique symbols and uniqute symbols that are not fixed
+    return Tuple(unique_sym), Tuple(printed_sym[.!fixed])
+end
 
 ############################################################################################
 function update(datatune::DataTune, data)

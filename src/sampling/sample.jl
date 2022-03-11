@@ -48,7 +48,8 @@ function sample(
     ## Check if we can capture previous samples
     updatesampler = update(datatune, tempering.adaption, args...)
     ## Construct SamplingInfo and ProgressLog
-    info = SamplingInfo(model, iterations, burnin, thinning, length(args), chains, updatesampler, tempering.adaption)
+    printedparameter = PrintedParameter(showparam(model, datatune, args...)...)
+    info = SamplingInfo(printedparameter, iterations, burnin, thinning, length(args), chains, updatesampler, tempering.adaption)
     progressmeter = progress(report, info)
     ## Initialize algorithms
     println("Constructing new sampler...")
@@ -67,7 +68,7 @@ function sample(
     println("Sampling finished, printing diagnostics and saving trace.")
     if printoutput
         ## Assign relevant parameter for printing and print summary to REPL.
-        sym = printedparam(datatune, model, args...)
+        sym = trace.info.sampling.printedparam.printed
         summary(trace, algorithmᵛ, model, sym, trace.info.sampling.burnin, thinning, printdefault)
     end
     ## Save output
@@ -101,7 +102,7 @@ function sample!(iterations::Integer,
     ## Check if iterations have to be adjusted if sequential data is used
     iterations = maxiterations(datatune_new, iterations)
     ArgCheck.@argcheck iterations > burnin "Burnin set higher than number of iterations."
-    info = SamplingInfo(model, iterations, burnin, thinning, Nalgorithms, Nchains, captured, tempered)
+    info = SamplingInfo(sampling.printedparam, iterations, burnin, thinning, Nalgorithms, Nchains, captured, tempered)
     progressmeter = progress(report, info)
     ## Construct new models for algorithms
     modelᵛ, datatuneᵛ = construct(model, datatune_new, Nchains, algorithmᵛ)
@@ -117,8 +118,8 @@ function sample!(iterations::Integer,
     println("Sampling finished, printing diagnostics.")
     if printoutput
         ## Assign relevant parameter for printing and print summary to REPL.
-        sym = printedparam(datatune_new, model, algorithmᵛ)
-        summary(trace_new, algorithmᵛ, model, sym, trace.info.sampling.burnin, thinning, printdefault)
+        sym = sym = trace_new.info.sampling.printedparam.printed
+        summary(trace_new, algorithmᵛ, model, sym, trace_new.info.sampling.burnin, thinning, printdefault)
     end
     ## Save output
     if safeoutput
