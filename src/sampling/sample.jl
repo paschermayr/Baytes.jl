@@ -118,7 +118,7 @@ function sample!(iterations::Integer,
     println("Sampling finished, printing diagnostics.")
     if printoutput
         ## Assign relevant parameter for printing and print summary to REPL.
-        sym = sym = trace_new.info.sampling.printedparam.printed
+        sym = trace_new.info.sampling.printedparam.printed
         summary(trace_new, algorithmᵛ, model, sym, trace_new.info.sampling.burnin, thinning, printdefault)
     end
     ## Save output

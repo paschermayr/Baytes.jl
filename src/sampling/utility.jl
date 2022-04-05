@@ -118,7 +118,7 @@ end
 ############################################################################################
 """
 $(SIGNATURES)
-Obtain all parameter where output diagnostics can be printed.
+Obtain all parameter where output diagnostics can be printed. Separate step to showparam in case parameter is increasing over time and cannot be printed
 
 # Examples
 ```julia
@@ -132,11 +132,7 @@ function printedparam(
     datatune::DataTune{<:D}, sym, smc::SMCConstructor
 ) where {D<:Expanding}
     #!TODO: If SMC is applied on Expanding data sequence, latent data is expanding over time - no output diagnostics for this yet.
-    return if smc.kernel == SMC2
-        Tuple(sym, (smc.kernel.propagation.sym,))
-    else
-        sym
-    end
+    return smc.kernel isa SMC2Constructor ? Tuple(setdiff(sym, smc.kernel.propagation.sym)) : sym
 end
 
 """
@@ -155,7 +151,7 @@ function showparam(model::ModelWrapper, datatune::DataTune, constructor...)
     # Check if all tracked symbols are not fixed in model
     ArgCheck.@argcheck all(haskey(model.val, symbol) for symbol in unique_sym)
     # Check if one of the parameter has increasing dimension (SMC2)
-    printed_sym = printedparam(datatune, unique_sym, constructor)
+    printed_sym = printedparam(datatune, unique_sym, constructor...)
     # Check if any of the remaining parameter is fixed, and we can thus avoid printing
     fixed = [model.info.constraint[sym] isa ModelWrappers.Fixed for sym in printed_sym]
     # Return unique symbols and uniqute symbols that are not fixed

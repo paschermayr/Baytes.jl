@@ -4,7 +4,6 @@ objectives = [
     Objective(ModelWrapper(MyBaseModel(), myparameter1, FlattenDefault()), data_uv),
     Objective(ModelWrapper(MyBaseModel(), myparameter1, FlattenDefault(; output = Float32)), data_uv)
 ]
-
 Nchains = 4
 tempermethods = [
     IterationTempering(Float64, UpdateFalse(), 1.0, 1000),
@@ -21,15 +20,76 @@ tempermethod = tempermethods[iter]
 @testset "Sampling, type conversion" begin
     for tempermethod in tempermethods
         for iter in eachindex(objectives)
+                sampledefault = SampleDefault(;
+                    dataformat=Batch(),
+                    tempering=deepcopy(tempermethod), #IterationTempering(Float64, UpdateFalse(), 1.0, 1000),
+                    chains=4,
+                    iterations=100,
+                    burnin=max(1, Int64(floor(10/10))),
+                    thinning = 1,
+                    safeoutput=false,
+                    printoutput=false,
+                    printdefault=PrintDefault(),
+                    report=ProgressReport(;
+                        bar=false,
+                        log=SilentLog()
+                    ),
+                )
+                temperupdate = sampledefault.tempering.adaption
+                _obj = deepcopy(objectives[iter])
+                _flattentype = _obj.model.info.flattendefault.output
+        #MCMC
+                ## Assign kernels
+                mcmc = MCMC(NUTS,(:μ, :σ,); stepsize = ConfigStepsize(;stepsizeadaption = UpdateFalse()))
+                trace, algorithms = sample(_rng, _obj.model, _obj.data, mcmc ; default = deepcopy(sampledefault))
+                ## If single mcmc kernel assigned, can capture previous results
+                @test isa(trace.info.sampling.captured, typeof(temperupdate))
+                ## Continue sampling
+                trace2, algorithms2 = sample!(100, _rng, _obj.model, _obj.data, trace, algorithms)
+                @test isa(trace2.info.sampling.captured, typeof(temperupdate))
+                postmean = trace_to_posteriormean(trace, _obj.model, _obj.tagged, 0, 1)
+        #SMC
+                ibis = SMCConstructor(mcmc, SMCDefault(jitterthreshold=0.99, resamplingthreshold=1.0))
+                trace, algorithms = sample(_rng, _obj.model, _obj.data, ibis; default = deepcopy(sampledefault))
+                ## If single mcmc kernel assigned, can capture previous results
+                @test isa(trace.info.sampling.captured, UpdateFalse)
+                ## Continue sampling
+                newdat = randn(_rng, length(_obj.data)+100)
+                trace2, algorithms2 = sample!(100, _rng, _obj.model, newdat, trace, algorithms)
+                @test isa(trace2.info.sampling.captured, UpdateFalse)
+        # Combinations
+                trace, algorithms = sample(_rng, _obj.model, _obj.data, mcmc, ibis; default = deepcopy(sampledefault))
+                ## If single mcmc kernel assigned, can capture previous results
+                @test isa(trace.info.sampling.captured, UpdateTrue)
+                ## Continue sampling
+                newdat = randn(_rng, length(_obj.data)+100)
+                trace2, algorithms2 = sample!(100, _rng, _obj.model, newdat, trace, algorithms)
+                @test isa(trace2.info.sampling.captured, UpdateTrue)
+        end
+    end
+end
+
+############################################################################################
+chains = [1, Nchains, 1, Nchains]
+temperchainmethods = [
+    IterationTempering(Float64, UpdateTrue(), float(chains[1]), 1000),
+    IterationTempering(Float64, UpdateTrue(), float(chains[2]), 1000),
+    JointTempering(Float64, UpdateTrue(), .5, float(chains[1]), chains[1]),
+    JointTempering(Float64, UpdateTrue(), .5, float(chains[2]), chains[2])
+]
+
+@testset "Sampling, Chain Management" begin
+    for (iter, tempermethod) in enumerate(temperchainmethods)
+            ## Set SampleDefault
             sampledefault = SampleDefault(;
                 dataformat=Batch(),
-                tempering=deepcopy(tempermethod), #IterationTempering(Float64, UpdateFalse(), 1.0, 1000),
-                chains=4,
-                iterations=100,
-                burnin=max(1, Int64(floor(10/10))),
+                tempering=deepcopy(tempermethod),
+                chains=chains[iter],
+                iterations=500,
+                burnin=0,
                 thinning = 1,
                 safeoutput=false,
-                printoutput=false,
+                printoutput=true,
                 printdefault=PrintDefault(),
                 report=ProgressReport(;
                     bar=false,
@@ -37,8 +97,7 @@ tempermethod = tempermethods[iter]
                 ),
             )
             temperupdate = sampledefault.tempering.adaption
-            _obj = deepcopy(objectives[iter])
-            _flattentype = _obj.model.info.flattendefault.output
+            _obj = deepcopy(objectives[1])
     #MCMC
             ## Assign kernels
             mcmc = MCMC(NUTS,(:μ, :σ,); stepsize = ConfigStepsize(;stepsizeadaption = UpdateFalse()))
@@ -48,25 +107,14 @@ tempermethod = tempermethods[iter]
             ## Continue sampling
             trace2, algorithms2 = sample!(100, _rng, _obj.model, _obj.data, trace, algorithms)
             @test isa(trace2.info.sampling.captured, typeof(temperupdate))
-            postmean = trace_to_posteriormean(trace, _obj.model, _obj.tagged, 0, 1)
-    #SMC
-            ibis = SMCConstructor(mcmc, SMCDefault(jitterthreshold=0.99, resamplingthreshold=1.0))
-            trace, algorithms = sample(_rng, _obj.model, _obj.data, ibis; default = deepcopy(sampledefault))
-            ## If single mcmc kernel assigned, can capture previous results
-            @test isa(trace.info.sampling.captured, UpdateFalse)
-            ## Continue sampling
-            newdat = randn(_rng, length(_obj.data)+100)
-            trace2, algorithms2 = sample!(100, _rng, _obj.model, newdat, trace, algorithms)
-            @test isa(trace2.info.sampling.captured, UpdateFalse)
     # Combinations
-            trace, algorithms = sample(_rng, _obj.model, _obj.data, mcmc, ibis; default = deepcopy(sampledefault))
+            mcmc = MCMC(NUTS,(:μ, :σ,); stepsize = ConfigStepsize(;stepsizeadaption = UpdateFalse()))
+            trace, algorithms = sample(_rng, _obj.model, _obj.data, mcmc, mcmc ; default = deepcopy(sampledefault))
             ## If single mcmc kernel assigned, can capture previous results
-            @test isa(trace.info.sampling.captured, UpdateTrue)
+            @test isa(trace.info.sampling.captured, typeof(temperupdate))
             ## Continue sampling
-            newdat = randn(_rng, length(_obj.data)+100)
-            trace2, algorithms2 = sample!(100, _rng, _obj.model, newdat, trace, algorithms)
-            @test isa(trace2.info.sampling.captured, UpdateTrue)
-        end
+            trace2, algorithms2 = sample!(100, _rng, _obj.model, _obj.data, trace, algorithms)
+            @test isa(trace2.info.sampling.captured, typeof(temperupdate))
     end
 end
 
@@ -151,7 +199,7 @@ end
             #!NOTE: If Expanding/Increasing data, update always true
             @test isa(trace.info.sampling.captured, UpdateTrue)
             ## Continue sampling
-            trace2, algorithms2 = sample!(100, _rng, _obj.model, _obj.data, trace, algorithms)
+            trace2, algorithms2 = sample!(500, _rng, _obj.model, _obj.data, trace, algorithms)
             @test isa(trace2.info.sampling.captured, UpdateTrue)
     #SMC
             ibis = SMCConstructor(mcmc, SMCDefault(jitterthreshold=0.99, resamplingthreshold=1.0))
@@ -159,8 +207,8 @@ end
             ## If single mcmc kernel assigned, can capture previous results
             @test isa(trace.info.sampling.captured, UpdateFalse)
             ## Continue sampling
-            newdat = randn(_rng, length(_obj.data)+100)
-            trace2, algorithms2 = sample!(100, _rng, _obj.model, newdat, trace, algorithms)
+            newdat = randn(_rng, length(_obj.data)+500)
+            trace2, algorithms2 = sample!(500, _rng, _obj.model, newdat, trace, algorithms)
             @test isa(trace2.info.sampling.captured, UpdateFalse)
     # SMC2
         _obj = deepcopy(myobjective_mcmc)
@@ -178,12 +226,14 @@ end
         trace, algorithms = sample(_rng, _obj.model, data, smc2; default = deepcopy(sampledefault))
         ## If single mcmc kernel assigned, can capture previous results
         @test isa(trace.info.sampling.captured, UpdateFalse)
+        #Check if correct parameter are printed
+        allparam, printparam = Baytes.showparam(_obj.model, trace.info.datatune, smc2)
+        @test allparam == keys(_obj.model.val)
+        @test printparam == (:μ, :σ, :p)
         ## Continue sampling
-        newdat = randn(_rng, length(data)+100)
-        trace2, algorithms2 = sample!(100, _rng, _obj.model, newdat, trace, algorithms)
+        newdat = randn(_rng, length(data)+500)
+        trace2, algorithms2 = sample!(500, _rng, _obj.model, newdat, trace, algorithms)
         @test isa(trace2.info.sampling.captured, UpdateFalse)
-        ##Check posterior parameter
-
     end
 end
 
