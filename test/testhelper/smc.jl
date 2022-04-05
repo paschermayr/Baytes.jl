@@ -27,7 +27,8 @@ myobjective_mcmc = Objective(mymodel, data_init, (:μ, :σ, :p))
 @test length(myobjective_mcmc.model.val.latent) == N_SMC2
 
 # Assign Model dynamics
-function dynamics(objective::Objective{<:ModelWrapper{BaseModel}})
+import ModelWrappers: dynamics
+function ModelWrappers.dynamics(objective::Objective{<:ModelWrapper{BaseModel}})
     @unpack model, data = objective
     @unpack μ, σ, p = model.val
 

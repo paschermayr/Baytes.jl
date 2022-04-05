@@ -56,7 +56,7 @@ function trace_to_posteriormean(
     thinning::Integer
 )
     mod_array_mean = map(iter -> mean(view(mod_array, :, iter, :)), Base.OneTo(size(mod_array, 2)))
-    mod_nt_mean = unflatten(model, tagged, mod_array_mean)
+    mod_nt_mean = ModelWrappers.unflatten(model, tagged, mod_array_mean)
     return mod_array_mean, mod_nt_mean
 end
 function trace_to_posteriormean(
