@@ -8,12 +8,15 @@ using Distributions
 ############################################################################################
 # Import Baytes Packages
 using
-    ModelWrappers,
-    Baytes
+    ModelWrappers#,
+#    Baytes
+
+include("E:\\OneDrive\\1_Professional\\1_Git\\0_Dev\\Julia\\modules\\Baytes.jl\\src\\Baytes.jl")
+using .Baytes
 
 ############################################################################################
 # Include Files
-include("TestHelper.jl")
+include("testhelper/TestHelper.jl")
 
 ############################################################################################
 # Run Tests

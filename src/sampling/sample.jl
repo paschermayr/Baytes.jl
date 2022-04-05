@@ -13,7 +13,7 @@ function summary(
     algorithmᵛ,
     model::ModelWrapper,
     sym=keys(model.val),
-    burnin::Integer=trace.info.burnin,
+    burnin::Integer=trace.info.sampling.burnin,
     thinning::Integer = 1,
     printdefault::PrintDefault=PrintDefault(),
 ) where {S<:Union{Symbol,NTuple{k,Symbol} where k}}

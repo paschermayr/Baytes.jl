@@ -103,11 +103,16 @@ end
 function maxiterations(
     datatune::DataTune{<:D}, iterations::Integer
 ) where {D<:Union{Expanding,Rolling}}
-    iter = maximum(datatune.config.size) - datatune.structure.index.current
-    println(
-        "Iteration chosen to be of length ", iter, " as datatune set to Expanding/Rolling."
-    )
-    return iter
+    # Compute maximum iterations based on data stepsize
+    datatune_max = maximum(datatune.config.size) - datatune.structure.index.current
+    # Compare to Sampling iteration specification
+    if datatune_max >= iterations
+        println("Max iterations in Expanding/Rolling datatune set to ", datatune_max, ". Iterations in SampleDefault are ", iterations, ". Sampling iterations set to ", iterations)
+        return iterations
+    elseif datatune_max < iterations
+        println("Max iterations in Expanding/Rolling datatune set to ", datatune_max, ". Iterations in SampleDefault are ", iterations, ". Sampling iterations set to ", datatune_max)
+        return datatune_max
+    end
 end
 
 ############################################################################################
@@ -126,7 +131,7 @@ end
 function printedparam(
     datatune::DataTune{<:D}, sym, smc::SMCConstructor
 ) where {D<:Expanding}
-    #!TDO: If SMC is applied on Expanding data sequence, latent data is expanding over time - no output diagnostics for this yet.
+    #!TODO: If SMC is applied on Expanding data sequence, latent data is expanding over time - no output diagnostics for this yet.
     return if smc.kernel == SMC2
         Tuple(sym, (smc.kernel.propagation.sym,))
     else
@@ -136,7 +141,7 @@ end
 
 """
 $(SIGNATURES)
-Return all unique targetted parameter, and parameter where diagnostics will be printed.
+Return all unique targetted parameter, and parameter where diagnostics will be printed. Separate to get_sym.
 
 # Examples
 ```julia
@@ -147,7 +152,6 @@ function showparam(model::ModelWrapper, datatune::DataTune, constructor...)
     # Get all tracked symbols in constructor
     sym = BaytesCore.to_Tuple.(map(BaytesCore.get_sym, constructor))
     unique_sym = unique(collect(Iterators.flatten(sym)))
-    #println("All unique tagged parameter: ", unique_sym)
     # Check if all tracked symbols are not fixed in model
     ArgCheck.@argcheck all(haskey(model.val, symbol) for symbol in unique_sym)
     # Check if one of the parameter has increasing dimension (SMC2)

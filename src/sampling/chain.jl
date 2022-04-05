@@ -1,46 +1,6 @@
 ############################################################################################
 """
 $(SIGNATURES)
-Change trace.val to 3d Array that is consistent with MCMCCHains dimensons. First dimension is iterations, second number of parameter, third number of chains.
-
-# Examples
-```julia
-```
-
-"""
-function trace_to_3DArray(
-    trace::Trace,
-    model::ModelWrapper,
-    tagged::Tagged,
-    burnin::Integer,
-    thinning::Integer
-)
-    ## Get trace information
-    Nparams = length(tagged)
-    @unpack Nchains, iterations = trace.info.sampling
-    @unpack flattendefault = model.info
-    effective_iterations = (burnin+1):thinning:iterations
-    ## Preallocate array
-    mcmcchain = zeros(length(effective_iterations), Nparams, Nchains)
-    ## Flatten corresponding parameter
-    Threads.@threads for chain in Base.OneTo(Nchains)
-        for (iter, index) in enumerate(effective_iterations)
-            mcmcchain[iter, :, chain] .= first(
-                ModelWrappers.flatten(
-                    flattendefault,
-                    subset(trace.val[chain][index], tagged.parameter),
-                    tagged.info.constraint,
-                ),
-            )
-        end
-    end
-    ## Return MCMCChain
-    return mcmcchain
-end
-
-############################################################################################
-"""
-$(SIGNATURES)
 Compute cross-chain diagnostics for parameter.
 
 # Examples
@@ -201,4 +161,4 @@ end
 
 ############################################################################################
 #export
-export trace_to_3DArray, chainsummary
+export chainsummary

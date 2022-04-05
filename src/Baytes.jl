@@ -138,7 +138,8 @@ export
     ParticleFilter,
     ParticleFilterDefault,
     ParticleFilterConstructor,
-
+    ParticleFilterMemory,
+    
     Markov,
     SemiMarkov,
     SemiMarkovInitiation,
