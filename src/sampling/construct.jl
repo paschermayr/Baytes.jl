@@ -13,7 +13,7 @@ function construct(
     model::ModelWrapper,
     chains::Integer
 )
-    MType = model.info.flattendefault.output
+    MType = model.info.reconstruct.default.output
     @unpack L, k, x₀ = tempering.parameter
     ## Adjust types for parameter and initial value
     parameter = BaytesCore.TemperingParameter(MType(L), MType(k), MType(x₀))
@@ -28,7 +28,7 @@ function construct(
     chains::Integer
 )
     tempertune = BaytesCore.JointTempering(
-        model.info.flattendefault.output,
+        model.info.reconstruct.default.output,
         tempering.adaption,
         tempering.val.current,
         tempering.ESSTarget.current,

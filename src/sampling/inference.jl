@@ -18,26 +18,18 @@ function trace_to_3DArray(
     ## Get trace information
     Nparams = length(tagged)
     @unpack Nchains, iterations = trace.info.sampling
-    @unpack flattendefault = model.info
     effective_iterations = (burnin+1):thinning:iterations
     ## Preallocate array
     mcmcchain = zeros(length(effective_iterations), Nparams, Nchains)
     ## Flatten corresponding parameter
     Threads.@threads for chain in Base.OneTo(Nchains)
         for (iter, index) in enumerate(effective_iterations)
-            mcmcchain[iter, :, chain] .= first(
-                ModelWrappers.flatten(
-                    flattendefault,
-                    subset(trace.val[chain][index], tagged.parameter),
-                    tagged.info.constraint,
-                ),
-            )
+            mcmcchain[iter, :, chain] .= flatten(tagged.info.reconstruct, subset(trace.val[chain][index], tagged.parameter))
         end
     end
     ## Return MCMCChain
     return mcmcchain
 end
-
 ############################################################################################
 """
 $(SIGNATURES)

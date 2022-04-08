@@ -123,12 +123,12 @@ function chainsummary(
 ) where {S<:Union{Symbol,NTuple{k,Symbol} where k}}
     ## Assign utility values
     @unpack Ndigits, quantiles = printdefault
-    @unpack flattendefault = model.info
+    @unpack default = model.info.reconstruct
     @unpack progress = trace.info
     tagged = Tagged(model, sym)
     Nparams = length(tagged)
     paramnames = ModelWrappers.paramnames(
-        flattendefault, subset(model.val, tagged.parameter), tagged.info.constraint
+        default, tagged.info.constraint, subset(model.val, tagged.parameter)
     )
     computingtime = progress.enabled ? (progress.tlast - progress.tinit) : NaN
     arr3D = trace_to_3DArray(trace, model, tagged, burnin, thinning)
@@ -149,7 +149,8 @@ function chainsummary(
     tablenames = union(string.(statsnames), quantilenames)
     Nstats = length(tablenames)
     ## Create table
-    diag_flattened, _ = flatten(diag)
+    _reconstruct = ModelWrappers.ReConstructor(diag)
+    diag_flattened = flatten(_reconstruct, diag)
     table = round.(reshape(diag_flattened, Nstats, Nparams)'; digits=Ndigits)
     ## Print table
     PrettyTables.pretty_table(

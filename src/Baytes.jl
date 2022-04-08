@@ -60,7 +60,7 @@ using ModelWrappers:
     FlattenContinuous,
     UnflattenTypes,
     UnflattenStrict,
-    UnflattenAD
+    UnflattenFlexible
 
 using BaytesMCMC, BaytesFilters, BaytesPMCMC, BaytesSMC
 
@@ -132,14 +132,14 @@ export
     FlattenContinuous,
     UnflattenTypes,
     UnflattenStrict,
-    UnflattenAD,
+    UnflattenFlexible,
 
     ## BaytesFilters
     ParticleFilter,
     ParticleFilterDefault,
     ParticleFilterConstructor,
     ParticleFilterMemory,
-    
+
     Markov,
     SemiMarkov,
     SemiMarkovInitiation,

@@ -37,7 +37,7 @@ tempermethod = tempermethods[iter]
                 )
                 temperupdate = sampledefault.tempering.adaption
                 _obj = deepcopy(objectives[iter])
-                _flattentype = _obj.model.info.flattendefault.output
+                _flattentype = _obj.model.info.reconstruct.default.output
         #MCMC
                 ## Assign kernels
                 mcmc = MCMC(NUTS,(:μ, :σ,); stepsize = ConfigStepsize(;stepsizeadaption = UpdateFalse()))
