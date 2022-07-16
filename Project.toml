@@ -24,7 +24,7 @@ UnPack = "3a884ed6-31ef-47d7-9d2a-63182c4928ed"
 [compat]
 ArgCheck = "2"
 BaytesCore = "0.1"
-BaytesFilters = "0.1"
+BaytesFilters = "0.1, 0.2"
 BaytesMCMC = "0.1"
 BaytesPMCMC = "0.1"
 BaytesSMC = "0.1"
@@ -38,8 +38,8 @@ UnPack = "1"
 julia = "^1.7"
 
 [extras]
-Test = "8dfed614-e22c-5e08-85e1-65c5234f0b40"
 Distributions = "31c24e10-a181-5473-b8eb-7969acd0382f"
+Test = "8dfed614-e22c-5e08-85e1-65c5234f0b40"
 
 [targets]
 test = ["Test", "Distributions"]
