@@ -1,8 +1,8 @@
 ############################################################################################
 # Models to be used in construction
 objectives = [
-    Objective(ModelWrapper(MyBaseModel(), myparameter1, FlattenDefault()), data_uv),
-    Objective(ModelWrapper(MyBaseModel(), myparameter1, FlattenDefault(; output = Float32)), data_uv)
+    Objective(ModelWrapper(MyBaseModel(), myparameter1, (;), FlattenDefault()), data_uv),
+    Objective(ModelWrapper(MyBaseModel(), myparameter1, (;), FlattenDefault(; output = Float32)), data_uv)
 ]
 Nchains = 4
 tempermethods = [
@@ -20,6 +20,7 @@ tempermethod = tempermethods[iter]
 @testset "Sampling, type conversion" begin
     for tempermethod in tempermethods
         for iter in eachindex(objectives)
+            #println(tempermethod, " ", iter)
                 sampledefault = SampleDefault(;
                     dataformat=Batch(),
                     tempering=deepcopy(tempermethod), #IterationTempering(Float64, UpdateFalse(), 1.0, 1000),

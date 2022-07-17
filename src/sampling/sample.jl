@@ -74,7 +74,7 @@ function sample(
     ## Save output
     if safeoutput
         println("Saving trace, initial model and algorithm.")
-        safetrace(trace, model, algorithmᵛ, chains, iterations, burnin)
+        savetrace(trace, model, algorithmᵛ, chains, iterations, burnin)
     end
     ## Return trace and algorithm
     return trace, algorithmᵛ
@@ -124,7 +124,7 @@ function sample!(iterations::Integer,
     ## Save output
     if safeoutput
         println("Saving trace, initial model and algorithm.")
-        safetrace(trace_new, model, algorithmᵛ, Nchains, iterations, burnin)
+        savetrace(trace_new, model, algorithmᵛ, Nchains, iterations, burnin)
     end
     ## Return trace and algorithm
     return trace_new, algorithmᵛ

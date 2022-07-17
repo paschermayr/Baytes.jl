@@ -50,7 +50,7 @@ Construct separate models and data tuning container for each chain.
 function construct(model::ModelWrapper, datatune::DataTune, chains::Integer, args...)
     ## Initialize separate models that work with each chain
     modelᵛ = map(
-        iter -> ModelWrapper(deepcopy(model.val), model.info, model.id), Base.OneTo(chains)
+        iter -> ModelWrapper(deepcopy(model.val), deepcopy(model.arg), model.info, model.id), Base.OneTo(chains)
     )
     datatuneᵛ = map(iter -> deepcopy(datatune), Base.OneTo(chains))
     return modelᵛ, datatuneᵛ

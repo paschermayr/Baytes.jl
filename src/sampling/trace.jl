@@ -244,7 +244,8 @@ Safe `trace`, `model` and `algorithm` to current working directory.
 ```
 
 """
-function safetrace(trace::Trace, model::ModelWrapper, algorithm, chains::Integer, iterations::Integer, burnin::Integer)
+function savetrace(trace::Trace, model::ModelWrapper, algorithm)
+    @unpack iterations, burnin, Nchains = trace.info.sampling
     JLD2.jldsave(
         join((
             Base.nameof(typeof(model.id)),
@@ -257,7 +258,7 @@ function safetrace(trace::Trace, model::ModelWrapper, algorithm, chains::Integer
             "M",
             Dates.minute(Dates.now()),
             "_Nchains",
-            chains,
+            Nchains,
             "_Iter",
             iterations,
             "_Burnin",
@@ -273,4 +274,4 @@ end
 
 ############################################################################################
 #export
-export TraceInfo, Trace, propose!
+export TraceInfo, Trace, propose!, savetrace

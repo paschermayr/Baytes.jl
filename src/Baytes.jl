@@ -47,11 +47,12 @@ using ModelWrappers:
     ModelWrapper,
     Tagged,
     Objective,
-    DiffObjective,
+#=    DiffObjective,
     AbstractDifferentiableTune,
     ℓObjectiveResult,
     ℓDensityResult,
     ℓGradientResult,
+=#
     flatten,
     paramnames,
     FlattenDefault,
