@@ -57,6 +57,8 @@ tempermethod = tempermethods[iter]
                 f_vals = flatten_chainvals(trace, transform)
                 @test sum( map(val -> length(val), g_vals) ) == length(m_vals) == size(f_vals,2)
 
+                get_chaindiagnostics(trace, transform)
+
         #SMC
                 ibis = SMCConstructor(mcmc, SMCDefault(jitterthreshold=0.99, resamplingthreshold=1.0))
                 trace, algorithms = sample(_rng, _obj.model, _obj.data, ibis; default = deepcopy(sampledefault))
