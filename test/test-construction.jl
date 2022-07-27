@@ -55,7 +55,7 @@ tempermethod = tempermethods[iter]
                 g_vals = get_chainvals(trace, transform)
                 m_vals = merge_chainvals(trace, transform)
                 f_vals = flatten_chainvals(trace, transform)
-                @test sum( map(val -> length(val), g_vals) ) == length(m_vals) == size(f_vals,2)
+                @test sum( map(val -> length(val), g_vals) ) == length(m_vals) == sum( map(val -> length(val), f_vals) )
 
                 get_chaindiagnostics(trace, transform)
 

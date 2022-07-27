@@ -35,8 +35,11 @@ struct TraceTransform{T<:Tagged, P}
         return new{T,P}(tagged, paramnames, chains, algorithms, burnin, thinning, maxiterations, effective_iterations)
     end
 end
-function TraceTransform(trace::Trace, model::ModelWrapper)
-    tagged = Tagged(model, trace.info.sampling.printedparam.printed)
+function TraceTransform(
+    trace::Trace,
+    model::ModelWrapper,
+    tagged::Tagged = Tagged(model, trace.info.sampling.printedparam.printed)
+)
     paramnames = ModelWrappers.paramnames(
         tagged.info.reconstruct.default, tagged.info.constraint, subset(model.val, tagged.parameter)
     )
@@ -148,9 +151,22 @@ Flatten Vector of Parameter NamedTuples into a Matrix, where each row represents
 ```
 
 """
-function flatten_chainvals(trace::Trace, transform::TraceTransform)
-    @unpack tagged = transform
-    return reduce(hcat, map(x -> flatten(tagged.info.reconstruct, x), merge_chainvals(trace, transform) ) )
+function flatten_chainvals(
+    trace::Trace,
+    transform::TraceTransform
+)
+    ## Get trace information
+    @unpack tagged, chains, effective_iterations = transform
+    ## Preallocate array
+    mcmcchain = [ [ zeros(tagged.info.reconstruct.default.output, length(tagged)) for _ in eachindex(effective_iterations) ] for _ in eachindex(chains) ]
+    ## Flatten corresponding parameter
+    Threads.@threads for (idx, chain) in collect(enumerate(chains))
+        for (iter0, iterburnin) in enumerate(effective_iterations)
+            mcmcchain[idx][iter0] .= flatten(tagged.info.reconstruct, subset(trace.val[chain][iterburnin], tagged.parameter))
+        end
+    end
+    ## Return MCMCChain
+    return mcmcchain
 end
 
 ################################################################################
