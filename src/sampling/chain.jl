@@ -154,7 +154,11 @@ function chainsummary(
     ## Check if any MCMC sampler was stuck in any chain, in which case chainsummary will be skipped
     stuck, paramchain = is_stuck(arr3D)
     if stuck
+        println(
+            "#####################################################################################",
+        )
         println("Chain is first stuck in (Nparam, Nchain) = ", paramchain, " - skipping chainsummary.")
+        return nothing
     end
     ## Compute summary statistics
     #!NOTE If more than 1 chain used, can use cross-chain diagnostics
