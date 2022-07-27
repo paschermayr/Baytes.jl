@@ -11,16 +11,13 @@ Print summary of parameter chain and diagnostics to REPL.
 function summary(
     trace::Trace,
     algorithmᵛ,
-    model::ModelWrapper,
-    sym=keys(model.val),
-    burnin::Integer=trace.info.sampling.burnin,
-    thinning::Integer = 1,
+    transform::TraceTransform,
     printdefault::PrintDefault=PrintDefault(),
 ) where {S<:Union{Symbol,NTuple{k,Symbol} where k}}
     ## Print Diagnostics summary
-    diagnosticssummary(trace, algorithmᵛ, nothing, burnin, thinning, printdefault)
+    diagnosticssummary(trace, algorithmᵛ, transform, nothing, printdefault)
     ## Print Chain summary
-    chainsummary(trace, model, sym, Val(:text), burnin, thinning, printdefault)
+    chainsummary(trace, transform, Val(:text), printdefault)
     ## Return
     return nothing
 end
@@ -68,13 +65,13 @@ function sample(
     println("Sampling finished, printing diagnostics and saving trace.")
     if printoutput
         ## Assign relevant parameter for printing and print summary to REPL.
-        sym = trace.info.sampling.printedparam.printed
-        summary(trace, algorithmᵛ, model, sym, trace.info.sampling.burnin, thinning, printdefault)
+        transform = TraceTransform(trace, model)
+        summary(trace, algorithmᵛ, transform, printdefault)
     end
     ## Save output
     if safeoutput
         println("Saving trace, initial model and algorithm.")
-        savetrace(trace, model, algorithmᵛ, chains, iterations, burnin)
+        savetrace(trace, model, algorithmᵛ)
     end
     ## Return trace and algorithm
     return trace, algorithmᵛ
@@ -118,13 +115,13 @@ function sample!(iterations::Integer,
     println("Sampling finished, printing diagnostics.")
     if printoutput
         ## Assign relevant parameter for printing and print summary to REPL.
-        sym = trace_new.info.sampling.printedparam.printed
-        summary(trace_new, algorithmᵛ, model, sym, trace_new.info.sampling.burnin, thinning, printdefault)
+        transform = TraceTransform(trace_new, model)
+        summary(trace_new, algorithmᵛ, transform, printdefault)
     end
     ## Save output
     if safeoutput
         println("Saving trace, initial model and algorithm.")
-        savetrace(trace_new, model, algorithmᵛ, Nchains, iterations, burnin)
+        savetrace(trace_new, model, algorithmᵛ)
     end
     ## Return trace and algorithm
     return trace_new, algorithmᵛ

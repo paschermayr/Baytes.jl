@@ -48,7 +48,15 @@ tempermethod = tempermethods[iter]
                 ## Continue sampling
                 trace2, algorithms2 = sample!(100, _rng, _obj.model, _obj.data, trace, algorithms)
                 @test isa(trace2.info.sampling.captured, typeof(temperupdate))
-                postmean = trace_to_posteriormean(trace, _obj.model, _obj.tagged, 0, 1)
+                transform = Baytes.TraceTransform(trace, _obj.model)
+                postmean = trace_to_posteriormean(trace, transform)
+
+                #Check trace transforms
+                g_vals = get_chainvals(trace, transform)
+                m_vals = merge_chainvals(trace, transform)
+                f_vals = flatten_chainvals(trace, transform)
+                @test sum( map(val -> length(val), g_vals) ) == length(m_vals) == size(f_vals,2)
+
         #SMC
                 ibis = SMCConstructor(mcmc, SMCDefault(jitterthreshold=0.99, resamplingthreshold=1.0))
                 trace, algorithms = sample(_rng, _obj.model, _obj.data, ibis; default = deepcopy(sampledefault))
@@ -174,6 +182,7 @@ end
 #SMC
 @testset "Sampling, Sequential Estimation" begin
     for (iter, tempermethod) in enumerate(tempermethods)
+    #        println(iter)
             ## Set SampleDefault
             sampledefault = SampleDefault(;
                 dataformat=Expanding(100),
@@ -190,6 +199,7 @@ end
                     log=SilentLog()
                 ),
             )
+#            (iter, tempermethod) = collect( enumerate(tempermethods) )[4]
             temperupdate = sampledefault.tempering.adaption
             _obj = deepcopy(objectives[1])
     #MCMC
@@ -205,6 +215,8 @@ end
     #SMC
             ibis = SMCConstructor(mcmc, SMCDefault(jitterthreshold=0.99, resamplingthreshold=1.0))
             trace, algorithms = sample(_rng, _obj.model, _obj.data, ibis; default = deepcopy(sampledefault))
+#            transform = TraceTransform(trace, _obj.model)
+#            summary(trace, algorithms,transform,PrintDefault(),)
             ## If single mcmc kernel assigned, can capture previous results
             @test isa(trace.info.sampling.captured, UpdateFalse)
             ## Continue sampling
@@ -249,4 +261,20 @@ end
     datatune = DataTune(data, Expanding(Nstart))
     @test Baytes.maxiterations(datatune, Niter1) == Ndata
     @test Baytes.maxiterations(datatune, Niter2) == Niter2
+end
+
+@testset "Utility, check if chain stuck" begin
+    _chain = randn(_rng, 10, 15, 4)
+    _chain2 = deepcopy(_chain)
+    param_stuck = 7
+    chain_stuck = 3
+    _chain2[:, param_stuck, chain_stuck] .= 1.0
+
+    stuck, paramchain = Baytes.is_stuck(_chain)
+    stuck2, paramchain2 = Baytes.is_stuck(_chain2)
+
+    @test stuck == false
+    @test stuck2 == true
+    @test paramchain2[1] == param_stuck
+    @test paramchain2[2] == chain_stuck
 end

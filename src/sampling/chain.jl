@@ -101,6 +101,31 @@ function mergediagnostics(paramdiagnostic, chainparamdiagnostic, paramquantiles)
 end
 
 ############################################################################################
+
+"""
+$(SIGNATURES)
+Check if any parameter has been stuck at each iteration in any chain, in which case chainsummary will skip computations.
+
+# Examples
+```julia
+```
+
+"""
+function is_stuck(arr3D::AbstractArray)
+    # Loop through chains and parameter to check if first parameter is equal to all samples == chain stuck
+    for Nchains in Base.OneTo( size(arr3D,3) )
+        for Nparams in Base.OneTo( size(arr3D,2) )
+            _benchmark = arr3D[begin,Nparams,Nchains]
+            stuck = all(val -> val == _benchmark, @view( arr3D[:,Nparams,Nchains] ))
+            if stuck
+                return true, (Nparams, Nchains)
+            end
+        end
+    end
+    return false, (0,0)
+end
+
+############################################################################################
 """
 $(SIGNATURES)
 Return summary for trace parameter chains. `Model` defines flattening type of parameter,
@@ -113,25 +138,24 @@ Return summary for trace parameter chains. `Model` defines flattening type of pa
 """
 function chainsummary(
     trace::Trace,
-    model::ModelWrapper,
-    sym::S,
+    transform::TraceTransform,
     backend, #i.e., Val(:text), or Val(:latex)
-    burnin::Integer,
-    thinning::Integer,
     printdefault::PrintDefault=PrintDefault();
     kwargs...,
 ) where {S<:Union{Symbol,NTuple{k,Symbol} where k}}
     ## Assign utility values
     @unpack Ndigits, quantiles = printdefault
-    @unpack default = model.info.reconstruct
     @unpack progress = trace.info
-    tagged = Tagged(model, sym)
+    @unpack tagged, paramnames = transform
     Nparams = length(tagged)
-    paramnames = ModelWrappers.paramnames(
-        default, tagged.info.constraint, subset(model.val, tagged.parameter)
-    )
+    ## Flatten parameter to 3D array
     computingtime = progress.enabled ? (progress.tlast - progress.tinit) : NaN
-    arr3D = trace_to_3DArray(trace, model, tagged, burnin, thinning)
+    arr3D = trace_to_3DArray(trace, transform)
+    ## Check if any MCMC sampler was stuck in any chain, in which case chainsummary will be skipped
+    stuck, paramchain = is_stuck(arr3D)
+    if stuck
+        println("Chain is first stuck in (Nparam, Nchain) = ", paramchain, " - skipping chainsummary.")
+    end
     ## Compute summary statistics
     #!NOTE If more than 1 chain used, can use cross-chain diagnostics
     if trace.info.sampling.Nchains > 1

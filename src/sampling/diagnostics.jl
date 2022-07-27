@@ -1,22 +1,6 @@
 ############################################################################################
 """
 $(SIGNATURES)
-Obtain parameter diagnostics from trace at chain `chain`, excluding first `burnin` samples.
-
-# Examples
-```julia
-```
-
-"""
-function get_chaindiagnostics(
-    trace::Trace, chain::Integer, Nalgorithm::Integer, burnin::Integer, thinning::Integer
-)
-    return @view(trace.diagnostics[chain][Nalgorithm][(1 + burnin):thinning:end])
-end
-
-############################################################################################
-"""
-$(SIGNATURES)
 Return summary for trace parameter diagnostics, `backend` may be Val(:text), or Val(:latex).
 
 # Examples
@@ -27,13 +11,13 @@ Return summary for trace parameter diagnostics, `backend` may be Val(:text), or 
 function diagnosticssummary(
     trace::Trace,
     algorithmᵛ::SMC,
+    transform::TraceTransform,
     backend::Nothing, #i.e., Val(:text), or Val(:latex)
-    burnin::Integer,
-    thinning::Integer,
     printdefault::PrintDefault=PrintDefault();
     kwargs...,
 )
     ## Assign utility variables
+    @unpack effective_iterations = transform
     @unpack Ndigits, quantiles = printdefault
     @unpack Nchains, Nalgorithms, burnin = trace.info.sampling
     ## Print diagnostics for each sampler for each chain
@@ -41,32 +25,31 @@ function diagnosticssummary(
         "#####################################################################################",
     )
     return results(
-        @view(trace.diagnostics[(1 + burnin):thinning:end]), algorithmᵛ, Ndigits, quantiles
+        @view(trace.diagnostics[effective_iterations]), algorithmᵛ, Ndigits, quantiles
     )
 end
 
 function diagnosticssummary(
     trace::Trace,
     algorithmᵛ::AbstractVector,
+    transform::TraceTransform,
     backend::Nothing, #i.e., Val(:text), or Val(:latex)
-    burnin::Integer,
-    thinning::Integer,
     printdefault::PrintDefault=PrintDefault();
     kwargs...,
 )
     ## Assign utility variables
     @unpack Ndigits, quantiles = printdefault
-    @unpack Nchains, Nalgorithms = trace.info.sampling
+    @unpack chains, algorithms, effective_iterations = transform
     ## Print diagnostics for each sampler for each chain
-    for Nalgorithm in Base.OneTo(Nalgorithms)
+    for Nalgorithm in algorithms
         println(
             "#####################################################################################",
         )
-        for Nchain in Base.OneTo(Nchains)
+        for Nchain in chains
             println("########################################## Chain ", Nchain, ":")
             println(Base.nameof(typeof(algorithmᵛ[Nchain][Nalgorithm])), " Diagnostics: ")
             results(
-                get_chaindiagnostics(trace, Nchain, Nalgorithm, burnin, thinning),
+                get_chaindiagnostics(trace.diagnostics, Nchain, Nalgorithm, effective_iterations),
                 algorithmᵛ[Nchain][Nalgorithm],
                 Ndigits,
                 quantiles,

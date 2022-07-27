@@ -10,7 +10,7 @@ using Distributions
 using
     ModelWrappers,
     Baytes
-
+#using .Baytes
 ############################################################################################
 # Include Files
 include("testhelper/TestHelper.jl")
