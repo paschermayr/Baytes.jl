@@ -61,17 +61,17 @@ function sample(
     ## Loop through iterations
     println("Sampling starts...")
     propose!(_rng, trace, algorithmᵛ, modelᵛ, data)
-    ## Print diagnostics
-    println("Sampling finished, printing diagnostics and saving trace.")
-    if printoutput
-        ## Assign relevant parameter for printing and print summary to REPL.
-        transform = TraceTransform(trace, model)
-        summary(trace, algorithmᵛ, transform, printdefault)
-    end
     ## Save output
     if safeoutput
         println("Saving trace, initial model and algorithm.")
         savetrace(trace, model, algorithmᵛ)
+    end
+    ## Print diagnostics
+    if printoutput
+        println("Sampling finished, printing diagnostics and saving trace.")
+        ## Assign relevant parameter for printing and print summary to REPL.
+        transform = TraceTransform(trace, model)
+        summary(trace, algorithmᵛ, transform, printdefault)
     end
     ## Return trace and algorithm
     return trace, algorithmᵛ
@@ -111,17 +111,17 @@ function sample!(iterations::Integer,
     ## Loop through iterations
     println("Sampling starts...")
     propose!(_rng, trace_new, algorithmᵛ, modelᵛ, data)
-    ## Print diagnostics
-    println("Sampling finished, printing diagnostics.")
-    if printoutput
-        ## Assign relevant parameter for printing and print summary to REPL.
-        transform = TraceTransform(trace_new, model)
-        summary(trace_new, algorithmᵛ, transform, printdefault)
-    end
     ## Save output
     if safeoutput
         println("Saving trace, initial model and algorithm.")
         savetrace(trace_new, model, algorithmᵛ)
+    end
+    ## Print diagnostics
+    if printoutput
+        println("Sampling finished, printing diagnostics.")
+        ## Assign relevant parameter for printing and print summary to REPL.
+        transform = TraceTransform(trace_new, model)
+        summary(trace_new, algorithmᵛ, transform, printdefault)
     end
     ## Return trace and algorithm
     return trace_new, algorithmᵛ
