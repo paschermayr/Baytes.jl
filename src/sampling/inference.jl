@@ -143,7 +143,9 @@ function trace_to_3DArray(
     ## Preallocate array
     mcmcchain = zeros(length(effective_iterations), length(tagged), length(chains))
     ## Flatten corresponding parameter
-    Threads.@threads for (idx, chain) in collect(enumerate(chains))
+    #!NOTE: This is threadsave, but chain is not flattened in correct ordered, which might be troublesome for MCMC chain analysis.
+#    Threads.@threads for (idx, chain) in collect(enumerate(chains))
+    for (idx, chain) in collect(enumerate(chains))
         for (iter0, iterburnin) in enumerate(effective_iterations)
             mcmcchain[iter0, :, idx] .= flatten(tagged.info.reconstruct, subset(trace.val[chain][iterburnin], tagged.parameter))
         end
@@ -230,7 +232,9 @@ function flatten_chainvals(
     ## Preallocate array
     mcmcchain = [ [ zeros(tagged.info.reconstruct.default.output, length(tagged)) for _ in eachindex(effective_iterations) ] for _ in eachindex(chains) ]
     ## Flatten corresponding parameter
-    Threads.@threads for (idx, chain) in collect(enumerate(chains))
+    #!NOTE: This is threadsave, but chain is not flattened in correct ordered, which might be troublesome for MCMC chain analysis.
+#    Threads.@threads for (idx, chain) in collect(enumerate(chains))
+    for (idx, chain) in collect(enumerate(chains))
         for (iter0, iterburnin) in enumerate(effective_iterations)
             mcmcchain[idx][iter0] .= flatten(tagged.info.reconstruct, subset(trace.val[chain][iterburnin], tagged.parameter))
         end

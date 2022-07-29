@@ -148,6 +148,7 @@ function chainsummary(
     @unpack progress = trace.info
     @unpack tagged, paramnames = transform
     Nparams = length(tagged)
+    Nchains = length(transform.chains)
     ## Flatten parameter to 3D array
     computingtime = progress.enabled ? (progress.tlast - progress.tinit) : NaN
     arr3D = trace_to_3DArray(trace, transform)
@@ -162,7 +163,7 @@ function chainsummary(
     end
     ## Compute summary statistics
     #!NOTE If more than 1 chain used, can use cross-chain diagnostics
-    if trace.info.sampling.Nchains > 1
+    if Nchains > 1
         #NOTE: Most of the computing time of the function happens here
         chainparamdiagnostic = chainparamdiagnostics(arr3D, computingtime)
     else
