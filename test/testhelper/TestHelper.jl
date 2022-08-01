@@ -1,7 +1,7 @@
 ############################################################################################
 # Constants
 "RNG for sampling based solutions"
-const _rng = Random.MersenneTwister(1)   # shorthand
+const _rng = Random.Xoshiro(123)   # shorthand
 Random.seed!(_rng, 1)
 
 "Tolerance for stochastic solutions"
