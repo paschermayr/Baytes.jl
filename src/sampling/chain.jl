@@ -183,7 +183,7 @@ function chainsummary(
     table = round.(reshape(diag_flattened, Nstats, Nparams)'; digits=Ndigits)
     ## Print table
     PrettyTables.pretty_table(
-        table, backend=backend, header=tablenames, row_names=paramnames, kwargs...
+        table, backend=backend, header=tablenames, row_labels=paramnames, kwargs...
     )
     ## Return table arguments
     return table, tablenames, paramnames
