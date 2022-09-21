@@ -114,6 +114,7 @@ function propose!(
             ## Update data iteration and current representation
             BaytesCore.update!(_rng, datatune[Nchain])
             dataₜ = BaytesCore.adjust(datatune[Nchain], data)
+            proposaltune = BaytesCore.ProposalTune(temperature, captured, datatune[Nchain])
             ## Propose next step
             for Nalgorithm in Base.OneTo(Nalgorithms)
                 _, trace.diagnostics[Nchain][Nalgorithm][iter] = propose!(
@@ -121,8 +122,7 @@ function propose!(
                     algorithmᵛ[Nchain][Nalgorithm],
                     modelᵛ[Nchain],
                     dataₜ,
-                    temperature,
-                    captured
+                    proposaltune
                 )
                 update!(progress, log, trace.diagnostics[Nchain][Nalgorithm][iter])
             end
@@ -152,6 +152,7 @@ function propose!(
             ## Update data iteration and current representation
             BaytesCore.update!(_rng, datatune[Nchain])
             dataₜ = BaytesCore.adjust(datatune[Nchain], data)
+            proposaltune = BaytesCore.ProposalTune(temperature, captured, datatune[Nchain])
             ## Propose next step
             for Nalgorithm in Base.OneTo(Nalgorithms)
                 _, trace.diagnostics[Nchain][Nalgorithm][iter] = propose!(
@@ -159,8 +160,7 @@ function propose!(
                     algorithmᵛ[Nchain][Nalgorithm],
                     modelᵛ[Nchain],
                     dataₜ,
-                    temperature,
-                    captured
+                    proposaltune
                 )
                 update!(progress, log, trace.diagnostics[Nchain][Nalgorithm][iter])
             end
@@ -189,8 +189,9 @@ function propose!(
         ## Update data iteration and current representation
         BaytesCore.update!(_rng, datatune)
         dataₜ = BaytesCore.adjust(datatune, data)
+        proposaltune = BaytesCore.ProposalTune(temperature, captured, datatune)
         ## Propagate through data
-        _, trace.diagnostics[iter] = propose!(_rng, algorithmᵛ, modelᵛ, dataₜ, temperature, captured)
+        _, trace.diagnostics[iter] = propose!(_rng, algorithmᵛ, modelᵛ, dataₜ, proposaltune)
         for Nchain in eachindex(algorithmᵛ.particles.model)
             trace.val[Nchain][iter] = algorithmᵛ.particles.model[Nchain].val
             update!(progress, log, trace.diagnostics[iter])

@@ -35,7 +35,8 @@ using BaytesCore:
     SilentLog,
     ConsoleLog,
     ProgressReport,
-    SampleDefault
+    SampleDefault,
+    ProposalTune
 
 import ModelWrappers:
     ModelWrappers,
