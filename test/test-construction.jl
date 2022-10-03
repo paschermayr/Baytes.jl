@@ -48,8 +48,16 @@ tempermethod = tempermethods[iter]
                 ## Continue sampling
                 trace2, algorithms2 = sample!(100, _rng, _obj.model, _obj.data, trace, algorithms)
                 @test isa(trace2.info.sampling.captured, typeof(temperupdate))
+                ## Inference Section
                 transform = Baytes.TraceTransform(trace, _obj.model)
                 postmean = trace_to_posteriormean(trace, transform)
+
+                post3D = trace_to_3DArray(trace, transform)
+                post3Dᵤ = trace_to_3DArrayᵤ(trace, transform)
+                @test size(post3D) == size(post3Dᵤ)
+                post2D = trace_to_2DArray(trace, transform)
+                post2Dᵤ = trace_to_2DArrayᵤ(trace, transform)
+                @test size(post2D) == size(post2Dᵤ)
 
                 #Check trace transforms
                 g_vals = get_chainvals(trace, transform)

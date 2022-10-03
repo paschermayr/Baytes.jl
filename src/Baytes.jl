@@ -55,6 +55,7 @@ using ModelWrappers:
     ℓGradientResult,
 =#
     flatten,
+    unconstrain,
     paramnames,
     FlattenDefault,
     FlattenTypes,
