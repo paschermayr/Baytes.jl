@@ -67,6 +67,9 @@ tempermethod = tempermethods[iter]
 
                 get_chaindiagnostics(trace, transform)
 
+                #Check printing commands
+                printchainsummary(trace, transform, Val(:text))
+                printchainsummary(_obj.model, trace, transform, Val(:text))
         #SMC
                 ibis = SMCConstructor(mcmc, SMCDefault(jitterthreshold=0.99, resamplingthreshold=1.0))
                 trace, algorithms = sample(_rng, _obj.model, _obj.data, ibis; default = deepcopy(sampledefault))
