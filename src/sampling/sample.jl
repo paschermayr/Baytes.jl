@@ -15,9 +15,9 @@ function summary(
     printdefault::PrintDefault=PrintDefault(),
 ) where {S<:Union{Symbol,NTuple{k,Symbol} where k}}
     ## Print Diagnostics summary
-    diagnosticssummary(trace, algorithmᵛ, transform, nothing, printdefault)
+    printdiagnosticssummary(trace, algorithmᵛ, transform, nothing, printdefault)
     ## Print Chain summary
-    chainsummary(trace, transform, Val(:text), printdefault)
+    printchainsummary(trace, transform, Val(:text), printdefault)
     ## Return
     return nothing
 end

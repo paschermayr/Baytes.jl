@@ -238,34 +238,34 @@ end
 ############################################################################################
 """
 $(SIGNATURES)
-Safe `trace`, `model` and `algorithm` to current working directory.
+Save `trace`, `model` and `algorithm` to current working directory with name 'name'.
 
 # Examples
 ```julia
 ```
 
 """
-function savetrace(trace::Trace, model::ModelWrapper, algorithm)
-    @unpack iterations, burnin, Nchains = trace.info.sampling
+function savetrace(trace::Trace, model::ModelWrapper, algorithm,
+    name = join((
+        Base.nameof(typeof(model.id)),
+        "_",
+        Base.nameof(typeof(algorithm)),
+        "_",
+        Dates.today(),
+        "_H",
+        Dates.hour(Dates.now()),
+        "M",
+        Dates.minute(Dates.now()),
+        "_Nchains",
+        trace.info.sampling.Nchains,
+        "_Iter",
+        trace.info.sampling.iterations,
+        "_Burnin",
+        trace.info.sampling.burnin,
+    ))
+)
     JLD2.jldsave(
-        join((
-            Base.nameof(typeof(model.id)),
-            "_",
-            Base.nameof(typeof(algorithm)),
-            "_",
-            Dates.today(),
-            "_H",
-            Dates.hour(Dates.now()),
-            "M",
-            Dates.minute(Dates.now()),
-            "_Nchains",
-            Nchains,
-            "_Iter",
-            iterations,
-            "_Burnin",
-            burnin,
-            ".jld2",
-        ));
+        join((name, ".jld2"));
         trace=trace,
         model=model,
         algorithm=algorithm,

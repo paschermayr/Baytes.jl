@@ -8,7 +8,7 @@ Return summary for trace parameter diagnostics, `backend` may be Val(:text), or 
 ```
 
 """
-function diagnosticssummary(
+function printdiagnosticssummary(
     trace::Trace,
     algorithmᵛ::SMC,
     transform::TraceTransform,
@@ -29,7 +29,7 @@ function diagnosticssummary(
     )
 end
 
-function diagnosticssummary(
+function printdiagnosticssummary(
     trace::Trace,
     algorithmᵛ::AbstractVector,
     transform::TraceTransform,
@@ -60,4 +60,4 @@ end
 
 ############################################################################################
 #export
-export diagnosticssummary
+export printdiagnosticssummary

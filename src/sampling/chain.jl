@@ -128,8 +128,7 @@ end
 ############################################################################################
 """
 $(SIGNATURES)
-Return summary for trace parameter chains. `Model` defines flattening type of parameter,
-`sym` defines parameter to be flattened, `backend` may be Val(:text), or Val(:latex).
+Return summary for trace parameter chains. 'printdefault' defines quantiles and number of digits for printing.
 
 # Examples
 ```julia
@@ -139,10 +138,8 @@ Return summary for trace parameter chains. `Model` defines flattening type of pa
 function chainsummary(
     trace::Trace,
     transform::TraceTransform,
-    backend, #i.e., Val(:text), or Val(:latex)
-    printdefault::PrintDefault=PrintDefault();
-    kwargs...,
-) where {S<:Union{Symbol,NTuple{k,Symbol} where k}}
+    printdefault::PrintDefault=PrintDefault()
+)
     ## Assign utility values
     @unpack Ndigits, quantiles = printdefault
     @unpack progress = trace.info
@@ -155,11 +152,7 @@ function chainsummary(
     ## Check if any MCMC sampler was stuck in any chain, in which case chainsummary will be skipped
     stuck, paramchain = is_stuck(arr3D)
     if stuck
-        println(
-            "#####################################################################################",
-        )
-        println("Chain is first stuck in (Nparam, Nchain) = ", paramchain, " - skipping chainsummary.")
-        return nothing
+        return stuck, paramchain, nothing
     end
     ## Compute summary statistics
     #!NOTE If more than 1 chain used, can use cross-chain diagnostics
@@ -181,14 +174,75 @@ function chainsummary(
     _reconstruct = ModelWrappers.ReConstructor(diag)
     diag_flattened = flatten(_reconstruct, diag)
     table = round.(reshape(diag_flattened, Nstats, Nparams)'; digits=Ndigits)
-    ## Print table
-    PrettyTables.pretty_table(
-        table, backend=backend, header=tablenames, row_labels=paramnames, kwargs...
-    )
     ## Return table arguments
     return table, tablenames, paramnames
 end
 
+"""
+$(SIGNATURES)
+Print summary for trace parameter chains. `backend` may be Val(:text), or Val(:latex).
+
+# Examples
+```julia
+```
+
+"""
+function printchainsummary(
+    trace::Trace,
+    transform::TraceTransform,
+    backend, #i.e., Val(:text), or Val(:latex)
+    printdefault::PrintDefault=PrintDefault();
+    kwargs...,
+)
+    table, tablenames, paramnames = chainsummary(trace, transform, printdefault)
+    if table isa Bool
+        println(
+            "#####################################################################################",
+        )
+        println("Chain is first stuck in (Nparam, Nchain) = ", tablenames, " - skipping chainsummary.")
+        return nothing, nothing, nothing
+    ## Print table
+    else
+        PrettyTables.pretty_table(
+            table, backend=backend, header=tablenames, row_labels=paramnames, kwargs...
+        )
+    end
+end
+
+"""
+$(SIGNATURES)
+Add a ModelWrapper struct 'model' as a function argument to print model.val as "true" parameter in table.
+
+# Examples
+```julia
+```
+
+"""
+function printchainsummary(
+    model::ModelWrapper,
+    trace::Trace,
+    transform::TraceTransform,
+    backend, #i.e., Val(:text), or Val(:latex)
+    printdefault::PrintDefault=PrintDefault();
+    kwargs...,
+)
+    table, tablenames, paramnames = chainsummary(trace, transform, printdefault)
+    if table isa Bool
+        println(
+            "#####################################################################################",
+        )
+        println("Chain is first stuck in (Nparam, Nchain) = ", tablenames, " - skipping chainsummary.")
+        return nothing, nothing, nothing
+    ## Print table
+    else
+        #Obtain true parameter from model
+        θ_true = round.(flatten(model, transform.tagged); digits = printdefault.Ndigits)
+        PrettyTables.pretty_table(
+            hcat(θ_true, table), backend=backend, header=vcat("True", tablenames), row_labels=paramnames, kwargs...
+        )
+    end
+end
+
 ############################################################################################
 #export
-export chainsummary
+export chainsummary, printchainsummary
