@@ -79,6 +79,7 @@ function construct(
     tempering::BaytesCore.TemperingMethod,
     datatune::DataTune,
     chains::Integer,
+    updatesampler::BaytesCore.UpdateBool,
     args...;
 ) where {D}
     ## Initiate Tempering Tune with correct model parameter type.
@@ -91,7 +92,7 @@ function construct(
             _rng,
             modelᵛ[begin],
             BaytesCore.adjust(datatuneᵛ[begin], data),
-            temperature₀,
+            BaytesCore.ProposalTune(temperature₀, updatesampler, datatuneᵛ[begin]),
             default
         ),
         args,
@@ -104,7 +105,7 @@ function construct(
             algorithm -> algorithm(
                 _rng, modelᵛ[Nchain],
                 BaytesCore.adjust(datatuneᵛ[Nchain], data),
-                temperature₀,
+                BaytesCore.ProposalTune(temperature₀, updatesampler, datatuneᵛ[Nchain]),
                 default
             ),
             args,
@@ -120,6 +121,7 @@ function construct(
     tempering::BaytesCore.TemperingMethod,
     datatune::DataTune,
     chains::Integer,
+    updatesampler::BaytesCore.UpdateBool,
     smc::SMCConstructor;
 ) where {D}
     ## Assign tempering struct with correct temperature type
@@ -127,7 +129,12 @@ function construct(
     ## Assign model for chains
     modelᵛ, datatuneᵛ = construct(model, datatune, chains, smc)
     ## Assign algorithm
-    algorithmsᵛ = smc(_rng, model, BaytesCore.adjust(datatune, data), temperature₀, default)
+    algorithmsᵛ = smc(_rng,
+        model,
+        BaytesCore.adjust(datatune, data),
+        BaytesCore.ProposalTune(temperature₀, updatesampler, datatune), 
+        default
+    )
     return modelᵛ, algorithmsᵛ, temperingtune, datatuneᵛ
 end
 

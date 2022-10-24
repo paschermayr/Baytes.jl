@@ -51,7 +51,7 @@ function sample(
     ## Initialize algorithms
     println("Constructing new sampler...")
     modelᵛ, algorithmᵛ, tempertune, datatuneᵛ = construct(
-        _rng, model, data, default, tempering, datatune, chains, args...
+        _rng, model, data, default, tempering, datatune, chains, updatesampler, args...
     )
     ## Initialize trace
     trace = Trace(
