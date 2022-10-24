@@ -44,9 +44,9 @@ function sample(
     ArgCheck.@argcheck iterations > burnin "Burnin set higher than number of iterations."
     ## Check if we can capture previous samples
     updatesampler = update(datatune, tempering.adaption, args...)
-    ## Construct SamplingInfo and ProgressLog
+    ## Construct SampleInfo and ProgressLog
     printedparameter = PrintedParameter(showparam(model, datatune, args...)...)
-    info = SamplingInfo(printedparameter, iterations, burnin, thinning, length(args), chains, updatesampler, tempering.adaption)
+    info = SampleInfo(printedparameter, iterations, burnin, thinning, length(args), chains, updatesampler, tempering.adaption)
     progressmeter = progress(report, info)
     ## Initialize algorithms
     println("Constructing new sampler...")
@@ -56,7 +56,7 @@ function sample(
     ## Initialize trace
     trace = Trace(
         _rng, algorithmᵛ, model, BaytesCore.adjust(datatune, data),
-        TraceInfo(tempertune, datatuneᵛ, default, info, progressmeter)
+        TraceSummary(tempertune, datatuneᵛ, default, info, progressmeter)
     )
     ## Loop through iterations
     println("Sampling starts...")
@@ -91,22 +91,22 @@ function sample!(iterations::Integer,
     _rng::Random.AbstractRNG, model::M, data::D,
     trace::Trace, algorithmᵛ
 ) where {M<:ModelWrapper,D}
-    @unpack tempertune, datatune, sampling, default = trace.info
-    @unpack Nalgorithms, Nchains, burnin, thinning, captured, tempered = sampling
+    @unpack tempertune, datatune, info, default = trace.summary
+    @unpack Nalgorithms, Nchains, burnin, thinning, captured, tempered = info
     @unpack safeoutput, printoutput, printdefault, report = default
     ## Create new DataTune struct, taking into account current Index and data dimension
     datatune_new = update(datatune, data)
     ## Check if iterations have to be adjusted if sequential data is used
     iterations = maxiterations(datatune_new, iterations)
     ArgCheck.@argcheck iterations > burnin "Burnin set higher than number of iterations."
-    info = SamplingInfo(sampling.printedparam, iterations, burnin, thinning, Nalgorithms, Nchains, captured, tempered)
-    progressmeter = progress(report, info)
+    info_new = SampleInfo(info.printedparam, iterations, burnin, thinning, Nalgorithms, Nchains, captured, tempered)
+    progressmeter = progress(report, info_new)
     ## Construct new models for algorithms
     modelᵛ, datatuneᵛ = construct(model, datatune_new, Nchains, algorithmᵛ)
     ## Construct new trace to store new samples
     trace_new = Trace(
         _rng, algorithmᵛ, model, BaytesCore.adjust(datatune_new, data),
-        TraceInfo(tempertune, datatuneᵛ, default, info, progressmeter)
+        TraceSummary(tempertune, datatuneᵛ, default, info_new, progressmeter)
     )
     ## Loop through iterations
     println("Sampling starts...")

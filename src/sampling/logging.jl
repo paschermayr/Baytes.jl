@@ -7,7 +7,7 @@ Return `Progress` struct with arguments from `info` for sampling session.
 ```
 
 """
-function progress(report::ProgressReport, info::SamplingInfo)
+function progress(report::ProgressReport, info::SampleInfo)
     return ProgressMeter.Progress(
         info.iterations * info.Nalgorithms * info.Nchains;
         enabled=report.bar,

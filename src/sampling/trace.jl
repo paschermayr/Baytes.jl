@@ -7,36 +7,36 @@ Contains useful information for post-sampling analysis. Also allows to continue 
 # Fields
 $(TYPEDFIELDS)
 """
-struct TraceInfo{
+struct TraceSummary{
     A<:TemperingMethod,
     B<:Union{DataTune, Vector{<:DataTune}},
     D<:BaytesCore.SampleDefault,
-    S<:SamplingInfo
+    S<:SampleInfo
     }
     "Tuning container for temperature tempering"
     tempertune::A
     "Tuning container for data tempering"
     datatune::B
-    "Default information used for sample function"
+    "Default settings used for sample function"
     default::D
     "Information about trace used for postprocessing."
-    sampling::S
+    info::S
     "Progress Log while sampling."
     progress::ProgressMeter.Progress
-    function TraceInfo(
+    function TraceSummary(
         tempertune::A,
         datatune::B,
         default::D,
-        sampling::S,
+        info::S,
         progress::ProgressMeter.Progress,
     ) where {
         A<:TemperingMethod,
         B<:Union{DataTune, Vector{<:DataTune}},
         D<:BaytesCore.SampleDefault,
-        S<:SamplingInfo
+        S<:SampleInfo
     }
         ## Return info
-        return new{A,B,D,S}(tempertune, datatune, default, sampling, progress)
+        return new{A,B,D,S}(tempertune, datatune, default, info, progress)
     end
 end
 
@@ -49,20 +49,20 @@ Contains sampling chain and diagnostics for given algorithms.
 # Fields
 $(TYPEDFIELDS)
 """
-struct Trace{C<:TraceInfo, A<:NamedTuple,B}
+struct Trace{C<:TraceSummary, A<:NamedTuple,B}
     "Model samples ~ out vector for corresponding chain, inner vector for iteration"
     val::Vector{Vector{A}}
     "Algorithm diagnostics ~ out vector for corresponding chain, inner vector for iteration"
     diagnostics::Vector{B}
     "Information about trace used for postprocessing."
-    info::C
+    summary::C
     function Trace(
         val::Vector{Vector{A}},
         diagnostics::Vector{B},
-        info::C,
-    ) where {A,B,C<:TraceInfo}
+        summary::C,
+    ) where {A,B,C<:TraceSummary}
         ## Return trace
-        return new{C,A,B}(val, diagnostics, info)
+        return new{C,A,B}(val, diagnostics, summary)
     end
 end
 
@@ -71,16 +71,16 @@ function Trace(
     algorithmᵛ::A,
     model::ModelWrapper,
     data::D,
-    info::TraceInfo,
+    summary::TraceSummary,
 ) where {A,D}
-    @unpack iterations, Nchains = info.sampling
+    @unpack iterations, Nchains = summary.info
     ## Create Model Parameter buffer
     val = [Vector{typeof(model.val)}(undef, iterations) for _ in Base.OneTo(Nchains)]
     ## Create Diagnostics buffer for each algorithm used
     diagtypes = infer(_rng, AbstractDiagnostics, algorithmᵛ, model, data)
     diagnostics = diagnosticsbuffer(diagtypes, iterations, Nchains, algorithmᵛ)
     ## Return trace
-    return Trace(val, diagnostics, info)
+    return Trace(val, diagnostics, summary)
 end
 
 ############################################################################################
@@ -98,13 +98,13 @@ Note that smc still works as intended if used alongside other mcmc sampler in `a
 """
 function propose!(
     _rng::Random.AbstractRNG,
-    trace::Trace{<:TraceInfo{<:BaytesCore.IterationTempering}},
+    trace::Trace{<:TraceSummary{<:BaytesCore.IterationTempering}},
     algorithmᵛ::AbstractVector,
     modelᵛ::Vector{M},
     data::D,
 ) where {M<:ModelWrapper,D}
-    @unpack default, tempertune, datatune, sampling, progress = trace.info
-    @unpack iterations, Nchains, Nalgorithms, captured = sampling
+    @unpack default, tempertune, datatune, info, progress = trace.summary
+    @unpack iterations, Nchains, Nalgorithms, captured = info
     @unpack log = default.report
     ## Propagate through data
     Base.Threads.@threads for Nchain in Base.OneTo(Nchains)
@@ -136,13 +136,13 @@ end
 
 function propose!(
     _rng::Random.AbstractRNG,
-    trace::Trace{<:TraceInfo{<:BaytesCore.JointTempering}},
+    trace::Trace{<:TraceSummary{<:BaytesCore.JointTempering}},
     algorithmᵛ::AbstractVector,
     modelᵛ::Vector{M},
     data::D,
 ) where {M<:ModelWrapper,D}
-    @unpack default, tempertune, datatune, sampling, progress = trace.info
-    @unpack iterations, Nchains, Nalgorithms, captured = sampling
+    @unpack default, tempertune, datatune, info, progress = trace.summary
+    @unpack iterations, Nchains, Nalgorithms, captured = info
     @unpack log = default.report
     ## Compute initial temperature
     temperature = BaytesCore.initial(tempertune)
@@ -179,8 +179,8 @@ function propose!(
     modelᵛ::M,
     data::D,
 ) where {T<:Trace,M<:ModelWrapper,D}
-    @unpack default, tempertune, datatune, sampling, progress = trace.info
-    @unpack iterations, Nchains, Nalgorithms, captured = sampling
+    @unpack default, tempertune, datatune, info, progress = trace.summary
+    @unpack iterations, Nchains, Nalgorithms, captured = info
     @unpack log = default.report
     ## Compute initial temperature
     temperature = BaytesCore.initial(tempertune)
@@ -257,11 +257,11 @@ function savetrace(trace::Trace, model::ModelWrapper, algorithm,
         "M",
         Dates.minute(Dates.now()),
         "_Nchains",
-        trace.info.sampling.Nchains,
+        trace.summary.info.Nchains,
         "_Iter",
-        trace.info.sampling.iterations,
+        trace.summary.info.iterations,
         "_Burnin",
-        trace.info.sampling.burnin,
+        trace.summary.info.burnin,
     ))
 )
     JLD2.jldsave(
@@ -275,4 +275,4 @@ end
 
 ############################################################################################
 #export
-export TraceInfo, Trace, propose!, savetrace
+export TraceSummary, Trace, propose!, savetrace

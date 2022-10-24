@@ -103,13 +103,13 @@ end
 function TraceTransform(
     trace::Trace,
     model::ModelWrapper,
-    tagged::Tagged = Tagged(model, trace.info.sampling.printedparam.printed),
+    tagged::Tagged = Tagged(model, trace.summary.info.printedparam.printed),
     info::TransformInfo = TransformInfo(
-        collect(Base.OneTo(trace.info.sampling.Nchains)),
-        collect(Base.OneTo(trace.info.sampling.Nalgorithms)),
-        trace.info.sampling.burnin,
-        trace.info.sampling.thinning,
-        trace.info.sampling.iterations
+        collect(Base.OneTo(trace.summary.info.Nchains)),
+        collect(Base.OneTo(trace.summary.info.Nalgorithms)),
+        trace.summary.info.burnin,
+        trace.summary.info.thinning,
+        trace.summary.info.iterations
     )
 )
     @unpack chains, algorithms, burnin, thinning, maxiterations = info

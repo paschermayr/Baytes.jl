@@ -44,10 +44,10 @@ tempermethod = tempermethods[iter]
                 mcmc = MCMC(NUTS,(:μ, :σ,); stepsize = ConfigStepsize(;stepsizeadaption = UpdateFalse()))
                 trace, algorithms = sample(_rng, _obj.model, _obj.data, mcmc ; default = deepcopy(sampledefault))
                 ## If single mcmc kernel assigned, can capture previous results
-                @test isa(trace.info.sampling.captured, typeof(temperupdate))
+                @test isa(trace.summary.info.captured, typeof(temperupdate))
                 ## Continue sampling
                 trace2, algorithms2 = sample!(100, _rng, _obj.model, _obj.data, trace, algorithms)
-                @test isa(trace2.info.sampling.captured, typeof(temperupdate))
+                @test isa(trace2.summary.info.captured, typeof(temperupdate))
                 ## Inference Section
                 transform = Baytes.TraceTransform(trace, _obj.model)
                 postmean = trace_to_posteriormean(trace, transform)
@@ -74,19 +74,19 @@ tempermethod = tempermethods[iter]
                 ibis = SMCConstructor(mcmc, SMCDefault(jitterthreshold=0.99, resamplingthreshold=1.0))
                 trace, algorithms = sample(_rng, _obj.model, _obj.data, ibis; default = deepcopy(sampledefault))
                 ## If single mcmc kernel assigned, can capture previous results
-                @test isa(trace.info.sampling.captured, UpdateFalse)
+                @test isa(trace.summary.info.captured, UpdateFalse)
                 ## Continue sampling
                 newdat = randn(_rng, length(_obj.data)+100)
                 trace2, algorithms2 = sample!(100, _rng, _obj.model, newdat, trace, algorithms)
-                @test isa(trace2.info.sampling.captured, UpdateFalse)
+                @test isa(trace2.summary.info.captured, UpdateFalse)
         # Combinations
                 trace, algorithms = sample(_rng, _obj.model, _obj.data, mcmc, ibis; default = deepcopy(sampledefault))
                 ## If single mcmc kernel assigned, can capture previous results
-                @test isa(trace.info.sampling.captured, UpdateTrue)
+                @test isa(trace.summary.info.captured, UpdateTrue)
                 ## Continue sampling
                 newdat = randn(_rng, length(_obj.data)+100)
                 trace2, algorithms2 = sample!(100, _rng, _obj.model, newdat, trace, algorithms)
-                @test isa(trace2.info.sampling.captured, UpdateTrue)
+                @test isa(trace2.summary.info.captured, UpdateTrue)
         end
     end
 end
@@ -125,18 +125,18 @@ temperchainmethods = [
             mcmc = MCMC(NUTS,(:μ, :σ,); stepsize = ConfigStepsize(;stepsizeadaption = UpdateFalse()))
             trace, algorithms = sample(_rng, _obj.model, _obj.data, mcmc ; default = deepcopy(sampledefault))
             ## If single mcmc kernel assigned, can capture previous results
-            @test isa(trace.info.sampling.captured, typeof(temperupdate))
+            @test isa(trace.summary.info.captured, typeof(temperupdate))
             ## Continue sampling
             trace2, algorithms2 = sample!(100, _rng, _obj.model, _obj.data, trace, algorithms)
-            @test isa(trace2.info.sampling.captured, typeof(temperupdate))
+            @test isa(trace2.summary.info.captured, typeof(temperupdate))
     # Combinations
             mcmc = MCMC(NUTS,(:μ, :σ,); stepsize = ConfigStepsize(;stepsizeadaption = UpdateFalse()))
             trace, algorithms = sample(_rng, _obj.model, _obj.data, mcmc, mcmc ; default = deepcopy(sampledefault))
             ## If single mcmc kernel assigned, can capture previous results
-            @test isa(trace.info.sampling.captured, typeof(temperupdate))
+            @test isa(trace.summary.info.captured, typeof(temperupdate))
             ## Continue sampling
             trace2, algorithms2 = sample!(100, _rng, _obj.model, _obj.data, trace, algorithms)
-            @test isa(trace2.info.sampling.captured, typeof(temperupdate))
+            @test isa(trace2.summary.info.captured, typeof(temperupdate))
     end
 end
 
@@ -167,27 +167,27 @@ end
             mcmc = MCMC(NUTS,(:μ, :σ,); stepsize = ConfigStepsize(;stepsizeadaption = UpdateFalse()))
             trace, algorithms = sample(_rng, _obj.model, _obj.data, mcmc ; default = deepcopy(sampledefault))
             ## If single mcmc kernel assigned, can capture previous results
-            @test isa(trace.info.sampling.captured, typeof(temperupdate))
+            @test isa(trace.summary.info.captured, typeof(temperupdate))
             ## Continue sampling
             trace2, algorithms2 = sample!(100, _rng, _obj.model, _obj.data, trace, algorithms)
-            @test isa(trace2.info.sampling.captured, typeof(temperupdate))
+            @test isa(trace2.summary.info.captured, typeof(temperupdate))
     #SMC
             ibis = SMCConstructor(mcmc, SMCDefault(jitterthreshold=0.99, resamplingthreshold=1.0))
             trace, algorithms = sample(_rng, _obj.model, _obj.data, ibis; default = deepcopy(sampledefault))
             ## If single mcmc kernel assigned, can capture previous results
-            @test isa(trace.info.sampling.captured, UpdateFalse)
+            @test isa(trace.summary.info.captured, UpdateFalse)
             ## Continue sampling
             newdat = randn(_rng, length(_obj.data)+100)
             trace2, algorithms2 = sample!(100, _rng, _obj.model, newdat, trace, algorithms)
-            @test isa(trace2.info.sampling.captured, UpdateFalse)
+            @test isa(trace2.summary.info.captured, UpdateFalse)
     # Combinations
             trace, algorithms = sample(_rng, _obj.model, _obj.data, mcmc, ibis; default = deepcopy(sampledefault))
             ## If single mcmc kernel assigned, can capture previous results
-            @test isa(trace.info.sampling.captured, UpdateTrue)
+            @test isa(trace.summary.info.captured, UpdateTrue)
             ## Continue sampling
             newdat = randn(_rng, length(_obj.data)+100)
             trace2, algorithms2 = sample!(100, _rng, _obj.model, newdat, trace, algorithms)
-            @test isa(trace2.info.sampling.captured, UpdateTrue)
+            @test isa(trace2.summary.info.captured, UpdateTrue)
     end
 end
 
@@ -221,21 +221,21 @@ end
             trace, algorithms = sample(_rng, _obj.model, _obj.data, mcmc ; default = deepcopy(sampledefault))
             ## If single mcmc kernel assigned, can capture previous results
             #!NOTE: If Expanding/Increasing data, update always true
-            @test isa(trace.info.sampling.captured, UpdateTrue)
+            @test isa(trace.summary.info.captured, UpdateTrue)
             ## Continue sampling
             trace2, algorithms2 = sample!(500, _rng, _obj.model, _obj.data, trace, algorithms)
-            @test isa(trace2.info.sampling.captured, UpdateTrue)
+            @test isa(trace2.summary.info.captured, UpdateTrue)
     #SMC
             ibis = SMCConstructor(mcmc, SMCDefault(jitterthreshold=0.99, resamplingthreshold=1.0))
             trace, algorithms = sample(_rng, _obj.model, _obj.data, ibis; default = deepcopy(sampledefault))
 #            transform = TraceTransform(trace, _obj.model)
 #            summary(trace, algorithms,transform,PrintDefault(),)
             ## If single mcmc kernel assigned, can capture previous results
-            @test isa(trace.info.sampling.captured, UpdateFalse)
+            @test isa(trace.summary.info.captured, UpdateFalse)
             ## Continue sampling
             newdat = randn(_rng, length(_obj.data)+500)
             trace2, algorithms2 = sample!(500, _rng, _obj.model, newdat, trace, algorithms)
-            @test isa(trace2.info.sampling.captured, UpdateFalse)
+            @test isa(trace2.summary.info.captured, UpdateFalse)
     # SMC2
         _obj = deepcopy(myobjective_mcmc)
         _tagged_pf = myobjective_pf.tagged
@@ -251,15 +251,15 @@ end
         smc2 = SMCConstructor(SMC2Constructor(pf, pmcmc), SMCDefault(jitterthreshold=0.75, resamplingthreshold=0.75))
         trace, algorithms = sample(_rng, _obj.model, data, smc2; default = deepcopy(sampledefault))
         ## If single mcmc kernel assigned, can capture previous results
-        @test isa(trace.info.sampling.captured, UpdateFalse)
+        @test isa(trace.summary.info.captured, UpdateFalse)
         #Check if correct parameter are printed
-        allparam, printparam = Baytes.showparam(_obj.model, trace.info.datatune, smc2)
+        allparam, printparam = Baytes.showparam(_obj.model, trace.summary.datatune, smc2)
         @test allparam == keys(_obj.model.val)
         @test printparam == (:μ, :σ, :p)
         ## Continue sampling
         newdat = randn(_rng, length(data)+500)
         trace2, algorithms2 = sample!(500, _rng, _obj.model, newdat, trace, algorithms)
-        @test isa(trace2.info.sampling.captured, UpdateFalse)
+        @test isa(trace2.summary.info.captured, UpdateFalse)
     end
 end
 

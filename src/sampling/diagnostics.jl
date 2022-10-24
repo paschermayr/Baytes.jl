@@ -19,7 +19,7 @@ function printdiagnosticssummary(
     ## Assign utility variables
     @unpack effective_iterations = transform
     @unpack Ndigits, quantiles = printdefault
-    @unpack Nchains, Nalgorithms, burnin = trace.info.sampling
+    @unpack Nchains, Nalgorithms, burnin = trace.summary.info
     ## Print diagnostics for each sampler for each chain
     println(
         "#####################################################################################",

@@ -29,7 +29,7 @@ Contains several useful information for constructing sampler.
 # Fields
 $(TYPEDFIELDS)
 """
-struct SamplingInfo{A<:PrintedParameter, U<:BaytesCore.UpdateBool, B<:BaytesCore.UpdateBool}
+struct SampleInfo{A<:PrintedParameter, U<:BaytesCore.UpdateBool, B<:BaytesCore.UpdateBool}
     "Parameter settings for printing."
     printedparam::A
     "Total number of sampling iterations."
@@ -46,7 +46,7 @@ struct SamplingInfo{A<:PrintedParameter, U<:BaytesCore.UpdateBool, B<:BaytesCore
     captured::U
     "Boolean if temperature is adapted for target function."
     tempered::B
-    function SamplingInfo(
+    function SampleInfo(
         printedparam::A,
         iterations::Int64,
         burnin::Int64,
@@ -214,4 +214,4 @@ end
 
 ############################################################################################
 #export
-export SamplingInfo, update, infer
+export SampleInfo, update, infer

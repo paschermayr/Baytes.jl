@@ -142,7 +142,7 @@ function chainsummary(
 )
     ## Assign utility values
     @unpack Ndigits, quantiles = printdefault
-    @unpack progress = trace.info
+    @unpack progress = trace.summary
     @unpack tagged, paramnames = transform
     Nparams = length(tagged)
     Nchains = length(transform.chains)
