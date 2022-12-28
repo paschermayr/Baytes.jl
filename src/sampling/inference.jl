@@ -127,7 +127,8 @@ end
 ################################################################################
 """
 $(SIGNATURES)
-Change trace.val to 3d Array that is consistent with MCMCCHains dimensons. First dimension is iterations, second number of parameter, third number of chains.
+Change trace.val to 3d Array that is consistent with MCMCCHains dimensons.
+First dimension is iterations, second number of parameter, third number of chains.
 
 # Examples
 ```julia
@@ -141,13 +142,15 @@ function trace_to_3DArray(
     ## Get trace information
     @unpack tagged, chains, effective_iterations = transform
     ## Preallocate array
-    mcmcchain = zeros(length(effective_iterations), length(tagged), length(chains))
+    mcmcchain = zeros(length(effective_iterations), length(chains), length(tagged))
     ## Flatten corresponding parameter
-    #!NOTE: This is threadsave, but chain is not flattened in correct ordered, which might be troublesome for MCMC chain analysis.
+    #!NOTE: Commented-out loop below is threadsave, but chain is not flattened in correct order, which might be troublesome for MCMC chain analysis.
 #    Threads.@threads for (idx, chain) in collect(enumerate(chains))
     for (idx, chain) in collect(enumerate(chains))
+        #!NOTE: idx and chain are separated in case not all chains are used for summary
         for (iter0, iterburnin) in enumerate(effective_iterations)
-            mcmcchain[iter0, :, idx] .= flatten(tagged.info.reconstruct, subset(trace.val[chain][iterburnin], tagged.parameter))
+            #!NOTE: New way of structuring parameter: (ndraws, nchains, nparams)
+            mcmcchain[iter0, idx, :] .= flatten(tagged.info.reconstruct, subset(trace.val[chain][iterburnin], tagged.parameter))
         end
     end
     ## Return MCMCChain
@@ -170,13 +173,14 @@ function trace_to_3DArrayᵤ(
     ## Get trace information
     @unpack tagged, chains, effective_iterations = transform
     ## Preallocate array
-    mcmcchain = zeros(length(effective_iterations), length(tagged), length(chains))
+    mcmcchain = zeros(length(effective_iterations), length(chains), length(tagged))
     ## Flatten corresponding parameter
-    #!NOTE: This is threadsave, but chain is not flattened in correct ordered, which might be troublesome for MCMC chain analysis.
+    #!NOTE: This is threadsave, but chain is not flattened in correct order, which might be troublesome for MCMC chain analysis.
 #    Threads.@threads for (idx, chain) in collect(enumerate(chains))
     for (idx, chain) in collect(enumerate(chains))
         for (iter0, iterburnin) in enumerate(effective_iterations)
-            mcmcchain[iter0, :, idx] .=
+#            mcmcchain[iter0, :, idx] .=
+            mcmcchain[iter0, idx, :] .=
                 flatten(tagged.info.reconstruct,
                     unconstrain(tagged.info.transform, subset(trace.val[chain][iterburnin], tagged.parameter) )
                 )
@@ -205,7 +209,7 @@ function trace_to_2DArray(
     ## Preallocate array
     mcmcchain = zeros(length(effective_iterations) * length(chains), length(tagged))
     ## Flatten corresponding parameter
-    #!NOTE: This is threadsave, but chain is not flattened in correct ordered, which might be troublesome for MCMC chain analysis.
+    #!NOTE: This is threadsave, but chain is not flattened in correct order, which might be troublesome for MCMC chain analysis.
 #    Threads.@threads for (idx, chain) in collect(enumerate(chains))
     iter = 0
     for (idx, chain) in collect(enumerate(chains))
@@ -265,7 +269,7 @@ function trace_to_posteriormean(
     transform::TraceTransform
 )
     @unpack tagged = transform
-    mod_array_mean = map(iter -> mean(view(mod_array, :, iter, :)), Base.OneTo(size(mod_array, 2)))
+    mod_array_mean = map(iter -> mean(view(mod_array, :, :, iter)), Base.OneTo(size(mod_array, 3)))
     mod_nt_mean = ModelWrappers.unflatten(tagged.info.reconstruct, mod_array_mean)
     return mod_array_mean, mod_nt_mean
 end
@@ -329,7 +333,7 @@ function flatten_chainvals(
     ## Preallocate array
     mcmcchain = [ [ zeros(tagged.info.reconstruct.default.output, length(tagged)) for _ in eachindex(effective_iterations) ] for _ in eachindex(chains) ]
     ## Flatten corresponding parameter
-    #!NOTE: This is threadsave, but chain is not flattened in correct ordered, which might be troublesome for MCMC chain analysis, hence we opt out of it.
+    #!NOTE: This is threadsave, but chain is not flattened in correct order, which might be troublesome for MCMC chain analysis, hence we opt out of it.
 #    Threads.@threads for (idx, chain) in collect(enumerate(chains))
     for (idx, chain) in collect(enumerate(chains))
         for (iter0, iterburnin) in enumerate(effective_iterations)

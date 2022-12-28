@@ -1,7 +1,7 @@
 name = "Baytes"
 uuid = "72ddfcfc-6e9d-43df-829b-7aed7c549d4f"
 authors = ["Patrick Aschermayr <p.aschermayr@gmail.com>"]
-version = "0.2.1"
+version = "0.2.2"
 
 [deps]
 ArgCheck = "dce04be8-c92d-5529-be00-80e4d2c0e197"
@@ -30,7 +30,7 @@ BaytesPMCMC = "0.2"
 BaytesSMC = "0.2"
 DocStringExtensions = "0.8, 0.9"
 JLD2 = "0.4"
-MCMCDiagnosticTools = "0.1"
+MCMCDiagnosticTools = "0.2"
 ModelWrappers = "0.3"
 PrettyTables = "2"
 ProgressMeter = "1.7"

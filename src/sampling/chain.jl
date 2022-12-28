@@ -54,7 +54,7 @@ function paramdiagnostics(vec::AbstractVector{T}) where {T<:Real}
 end
 function paramdiagnostics(arr::Array{T,3}) where {T<:Real}
     return map(
-        iter -> paramdiagnostics(vec(view(arr, :, iter, :))), Base.OneTo(size(arr, 2))
+        iter -> paramdiagnostics(vec(view(arr, :, :, iter))), Base.OneTo(size(arr, 3))
     )
 end
 
@@ -75,8 +75,8 @@ function paramquantiles(vec::AbstractVector{T}, printdefault::PrintDefault) wher
 end
 function paramquantiles(arr::Array{T,3}, printdefault::PrintDefault) where {T<:Real}
     return map(
-        iter -> paramquantiles(vec(view(arr, :, iter, :)), printdefault),
-        Base.OneTo(size(arr, 2)),
+        iter -> paramquantiles(vec(view(arr, :, :, iter)), printdefault),
+        Base.OneTo(size(arr, 3)),
     )
 end
 
@@ -113,10 +113,10 @@ Check if any parameter has been stuck at each iteration in any chain, in which c
 """
 function is_stuck(arr3D::AbstractArray)
     # Loop through chains and parameter to check if first parameter is equal to all samples == chain stuck
-    for Nchains in Base.OneTo( size(arr3D,3) )
-        for Nparams in Base.OneTo( size(arr3D,2) )
-            _benchmark = arr3D[begin,Nparams,Nchains]
-            stuck = all(val -> val == _benchmark, @view( arr3D[:,Nparams,Nchains] ))
+    for Nparams in Base.OneTo( size(arr3D, 3) )
+        for Nchains in Base.OneTo( size(arr3D, 2) )
+            _benchmark = arr3D[begin, Nchains, Nparams]
+            stuck = all(val -> val == _benchmark, @view( arr3D[:, Nchains, Nparams] ))
             if stuck
                 return true, (Nparams, Nchains)
             end

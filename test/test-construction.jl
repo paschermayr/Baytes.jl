@@ -277,11 +277,14 @@ end
 end
 
 @testset "Utility, check if chain stuck" begin
-    _chain = randn(_rng, 10, 15, 4)
+    _Ndraws = 1000
+    _Nparams = 10
+    _Nchains = 4
+    _chain = randn(_rng, _Ndraws, _Nchains, _Nparams)
     _chain2 = deepcopy(_chain)
     param_stuck = 7
     chain_stuck = 3
-    _chain2[:, param_stuck, chain_stuck] .= 1.0
+    _chain2[:, chain_stuck, param_stuck] .= 1.0
 
     stuck, paramchain = Baytes.is_stuck(_chain)
     stuck2, paramchain2 = Baytes.is_stuck(_chain2)
