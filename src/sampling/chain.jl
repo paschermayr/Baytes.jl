@@ -10,13 +10,14 @@ Compute cross-chain diagnostics for parameter.
 """
 function chainparamdiagnostics(arr::Array{T,3}, computingtime::F) where {T<:Real,F<:Real}
     ess, rhat = MCMCDiagnosticTools.ess_rhat(arr)
-    gelmandiagnostic = MCMCDiagnosticTools.gelmandiag(arr)
+    #!NOTE: Remove diagnostic from output
+#    gelmandiagnostic = MCMCDiagnosticTools.gelmandiag(arr)
     vals = map(
         iter -> (
             ESS=ess[iter],
             ESSperSec=ess[iter] / computingtime,
             Rhat=rhat[iter],
-            GelmanPSRF=gelmandiagnostic.psrf[iter],
+#            GelmanPSRF=gelmandiagnostic.psrf[iter],
         ),
         eachindex(ess),
     )
@@ -29,7 +30,8 @@ function singlechaindiagnostics(arr::Array{T,3}, Nparams::Integer) where {T<:Rea
             ESS=NaN,
             ESSperSec=NaN,
             Rhat=NaN,
-            GelmanPSRF=NaN),
+#            GelmanPSRF=NaN
+            ),
         Base.OneTo(Nparams)
     )
     return vals
