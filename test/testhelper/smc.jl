@@ -45,7 +45,7 @@ function (objective::Objective{<:ModelWrapper{BaseModel}})(θ::NamedTuple)
     @unpack model, data, tagged = objective
     @unpack μ, σ, p, latent = θ
 ## Prior -> a faster shortcut without initializing the priors again
-    lprior = log_prior(tagged.info.transform, ModelWrappers.subset(θ, tagged.parameter) )
+    lprior = log_prior(tagged.info.transform.constraint, ModelWrappers.subset(θ, tagged.parameter) )
 ##Likelihood
     dynamicsᵉ = [Normal(μ[iter], σ[iter]) for iter in eachindex(μ)]
     dynamicsˢ = Categorical(p)
