@@ -153,7 +153,7 @@ function showparam(model::ModelWrapper, datatune::DataTune, constructor...)
     # Check if one of the parameter has increasing dimension (SMC2)
     printed_sym = printedparam(datatune, unique_sym, constructor...)
     # Check if any of the remaining parameter is fixed, and we can thus avoid printing
-    fixed = [model.info.constraint[sym] isa ModelWrappers.Fixed for sym in printed_sym]
+    fixed = [model.info.transform.constraint[sym] isa ModelWrappers.Fixed for sym in printed_sym]
     # Return unique symbols and uniqute symbols that are not fixed
     return Tuple(unique_sym), Tuple(printed_sym[.!fixed])
 end

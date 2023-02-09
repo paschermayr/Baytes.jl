@@ -1,6 +1,6 @@
 ######################################## Model 1
 struct MyBaseModel <: ModelName end
-myparameter1 = (μ = Param(0.0, Normal()), σ = Param(10.0, Gamma()))
+myparameter1 = (μ = Param(Normal(), 0.0, ), σ = Param(Gamma(), 10.0, ))
 mymodel1 = ModelWrapper(MyBaseModel(), myparameter1)
 
 data_uv = rand(_rng, Normal(mymodel1.val.μ, mymodel1.val.σ), N)

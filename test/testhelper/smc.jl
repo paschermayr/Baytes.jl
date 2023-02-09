@@ -12,10 +12,10 @@ latent_init = rand(_rng, Categorical(p), N_SMC2)
 data_init = data[1:N_SMC2]
 
 myparameter = (;
-    μ = Param(μ, [Normal(-2., 5), Normal(2., 5)]),
-    σ = Param(σ, [Gamma(2.,2.), Gamma(2.,2.)]),
-    p = Param(p, Dirichlet(2, 2)),
-    latent = Param(latent_init, [Categorical(p) for _ in Base.OneTo(N_SMC2)]),
+    μ = Param([Normal(-2., 5), Normal(2., 5)], μ, ),
+    σ = Param([Gamma(2.,2.), Gamma(2.,2.)], σ, ),
+    p = Param(Dirichlet(2, 2), p, ),
+    latent = Param([Categorical(p) for _ in Base.OneTo(N_SMC2)], latent_init, ),
 )
 mymodel = ModelWrapper(myparameter)
 myobjective = Objective(mymodel, data_init)
@@ -45,7 +45,7 @@ function (objective::Objective{<:ModelWrapper{BaseModel}})(θ::NamedTuple)
     @unpack model, data, tagged = objective
     @unpack μ, σ, p, latent = θ
 ## Prior -> a faster shortcut without initializing the priors again
-    lprior = log_prior(tagged.info.constraint, ModelWrappers.subset(θ, tagged.parameter) )
+    lprior = log_prior(tagged.info.transform, ModelWrappers.subset(θ, tagged.parameter) )
 ##Likelihood
     dynamicsᵉ = [Normal(μ[iter], σ[iter]) for iter in eachindex(μ)]
     dynamicsˢ = Categorical(p)

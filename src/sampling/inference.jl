@@ -114,7 +114,7 @@ function TraceTransform(
 )
     @unpack chains, algorithms, burnin, thinning, maxiterations = info
     paramnames = ModelWrappers.paramnames(
-        tagged.info.reconstruct.default, tagged.info.constraint, subset(model.val, tagged.parameter)
+        tagged.info.reconstruct.default, tagged.info.transform.constraint, subset(model.val, tagged.parameter)
     )
 
     return TraceTransform(
