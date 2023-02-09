@@ -23,7 +23,7 @@ using Distributions, Random, UnPack
 _rng = Random.GLOBAL_RNG
 
 #Create initial model and data
-myparameter = (μ = Param(2.0, Normal()), σ = Param(3.0, Gamma()))
+myparameter = (μ = Param(Normal(), 2.0), σ = Param(Gamma(), 3.0))
 mymodel = ModelWrapper(myparameter)
 data = randn(1000)
 #Create objective for both μ and σ and define a target function for it
@@ -85,7 +85,8 @@ Per default, `sample` and `sample!` return summary information of the chain and 
 burnin = 0
 thinning = 1
 tagged = Tagged(mymodel, (:μ,:σ) )
-array_3dim = Baytes.trace_to_3DArray(trace5, mymodel, tagged, burnin, thinning)
+tracetransform = TraceTransform(trace5, mymodel, tagged)
+array_3dim = Baytes.trace_to_3DArray(trace5, tracetransform)
 
 using MCMCChains
 MCMCChains.Chains(array_3dim, trace5.info.sampling.paramnames)
