@@ -178,7 +178,7 @@ function propose!(
     algorithmᵛ::SMC,
     modelᵛ::M,
     data::D,
-) where {T<:Trace,M<:ModelWrapper,D}
+) where {M<:ModelWrapper,D}
     @unpack default, tempertune, datatune, info, progress = trace.summary
     @unpack iterations, Nchains, Nalgorithms, captured = info
     @unpack log = default.report

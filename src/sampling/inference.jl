@@ -26,9 +26,7 @@ struct TransformInfo
         burnin::Int64,
         thinning::Int64,
         maxiterations::Int64
-    ) where {
-        T<:Tagged,P
-    }
+    )
         ArgCheck.@argcheck maxiterations >= burnin >= 0
         ArgCheck.@argcheck thinning > 0
         ArgCheck.@argcheck maxiterations > 0

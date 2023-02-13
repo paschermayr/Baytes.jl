@@ -13,7 +13,7 @@ function summary(
     algorithmᵛ,
     transform::TraceTransform,
     printdefault::PrintDefault=PrintDefault(),
-) where {S<:Union{Symbol,NTuple{k,Symbol} where k}}
+)
     ## Print Diagnostics summary
     printdiagnosticssummary(trace, algorithmᵛ, transform, nothing, printdefault)
     ## Print Chain summary
@@ -34,7 +34,7 @@ Sample `model` parameter given `data` with `args` algorithm. Default sampling ar
 """
 function sample(
     _rng::Random.AbstractRNG, model::M, data::D, args...; default=SampleDefault()
-) where {M<:ModelWrapper,S<:SampleDefault,D}
+) where {M<:ModelWrapper,D}
     @unpack dataformat, chains, tempering, iterations, burnin, thinning, safeoutput,
     printoutput, printdefault, report = default
     ## Check if datatune can be created
