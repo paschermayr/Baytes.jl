@@ -180,6 +180,7 @@ function chainsummary(
     return table, tablenames, paramnames
 end
 
+############################################################################################
 """
 $(SIGNATURES)
 Print summary for trace parameter chains. `backend` may be Val(:text), or Val(:latex).
@@ -246,5 +247,97 @@ function printchainsummary(
 end
 
 ############################################################################################
+"""
+$(SIGNATURES)
+Save summary for trace parameter chains as html file.
+
+# Examples
+```julia
+```
+
+"""
+function savechainsummary(
+    trace::Trace,
+    transform::TraceTransform,
+    printdefault::PrintDefault=PrintDefault(),
+    name = join((
+        "modeldiagnostics_",
+        Dates.today(),
+        "_H",
+        Dates.hour(Dates.now()),
+        "M",
+        Dates.minute(Dates.now()),
+        "_Nchains",
+        trace.summary.info.Nchains,
+        "_Iter",
+        trace.summary.info.iterations,
+        "_Burnin",
+        trace.summary.info.burnin,
+    ))
+)
+    # Compute diagnostics
+    table, tablenames, paramnames = chainsummary(trace, transform, printdefault)
+    # Return output as html document
+    open(join((name, ".html")), "w") do f
+        pretty_table(
+            f,
+            table,
+            header=tablenames, row_labels=paramnames,
+            backend=Val(:html),
+            alignment = :c,
+            tf = tf_html_simple,
+            standalone = true
+        )
+    end
+end
+
+"""
+$(SIGNATURES)
+Add a ModelWrapper struct 'model' as a function argument to save model.val as "true" parameter in table.
+
+# Examples
+```julia
+```
+
+"""
+function savechainsummary(
+    model::ModelWrapper,
+    trace::Trace,
+    transform::TraceTransform,
+    printdefault::PrintDefault=PrintDefault(),
+    name = join((
+        "modeldiagnostics_",
+        Dates.today(),
+        "_H",
+        Dates.hour(Dates.now()),
+        "M",
+        Dates.minute(Dates.now()),
+        "_Nchains",
+        trace.summary.info.Nchains,
+        "_Iter",
+        trace.summary.info.iterations,
+        "_Burnin",
+        trace.summary.info.burnin,
+    ))
+)
+    # Compute diagnostics
+    table, tablenames, paramnames = chainsummary(trace, transform, printdefault)
+    #Obtain true parameter from model
+    θ_true = round.(flatten(model, transform.tagged); digits = printdefault.Ndigits)
+    # Return output as html document
+    open(join((name, ".html")), "w") do f
+        pretty_table(
+            f,
+            hcat(θ_true, table),
+            header=vcat("True", tablenames), row_labels=paramnames,
+            backend=Val(:html),
+            alignment = :c,
+            tf = tf_html_simple,
+            standalone = true
+        )
+    end
+end
+
+############################################################################################
 #export
-export chainsummary, printchainsummary
+export chainsummary, printchainsummary, savechainsummary
