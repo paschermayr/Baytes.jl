@@ -80,7 +80,7 @@ using MCMCDiagnosticTools: MCMCDiagnosticTools, ess_rhat, mcse, gelmandiag
 using Statistics: Statistics, mean, std, sqrt, quantile, var
 using Dates: Dates, today, hour, minute, now
 using JLD2: JLD2, jldsave
-using PrettyTables: PrettyTables, pretty_table
+using PrettyTables: PrettyTables, pretty_table, tf_html_simple
 
 ################################################################################
 #Abstract types to be dispatched in Examples section

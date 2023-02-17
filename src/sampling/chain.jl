@@ -285,7 +285,7 @@ function savechainsummary(
             header=tablenames, row_labels=paramnames,
             backend=Val(:html),
             alignment = :c,
-            tf = tf_html_simple,
+            tf = PrettyTables.tf_html_simple,
             standalone = true
         )
     end
@@ -332,7 +332,7 @@ function savechainsummary(
             header=vcat("True", tablenames), row_labels=paramnames,
             backend=Val(:html),
             alignment = :c,
-            tf = tf_html_simple,
+            tf = PrettyTables.tf_html_simple,
             standalone = true
         )
     end
