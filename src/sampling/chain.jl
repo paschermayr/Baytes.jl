@@ -9,30 +9,25 @@ Compute cross-chain diagnostics for parameter.
 
 """
 function chainparamdiagnostics(arr::Array{T,3}, computingtime::F) where {T<:Real,F<:Real}
-    ess, rhat = MCMCDiagnosticTools.ess_rhat(arr)
-    #!NOTE: Remove diagnostic from output
-#    gelmandiagnostic = MCMCDiagnosticTools.gelmandiag(arr)
+    Nparams = size(arr, 3)
+    Nchains = size(arr, 2)
+    #!NOTE If more than 1 chain used, can use cross-chain diagnostics
+    if Nchains > 1
+        ess_bulk = MCMCDiagnosticTools.ess(arr; kind = :bulk)
+        ess_tail = MCMCDiagnosticTools.ess(arr; kind = :tail)
+        rhat = MCMCDiagnosticTools.rhat(arr; kind = :rank)
+    else
+        ess_bulk = repeat([NaN], Nparams)
+        ess_tail = repeat([NaN], Nparams)
+        rhat = repeat([NaN], Nparams)
+    end
     vals = map(
         iter -> (
-            ESS=ess[iter],
-            ESSperSec=ess[iter] / computingtime,
+            ESS_bulk=ess_bulk[iter],
+            ESS_tail=ess_tail[iter],
             Rhat=rhat[iter],
-#            GelmanPSRF=gelmandiagnostic.psrf[iter],
         ),
-        eachindex(ess),
-    )
-    return vals
-end
-
-function singlechaindiagnostics(arr::Array{T,3}, Nparams::Integer) where {T<:Real}
-    vals = map(
-        iter -> (
-            ESS=NaN,
-            ESSperSec=NaN,
-            Rhat=NaN,
-#            GelmanPSRF=NaN
-            ),
-        Base.OneTo(Nparams)
+        Base.OneTo(Nparams),
     )
     return vals
 end
@@ -46,17 +41,17 @@ Compute in-chain diagnostics for parameter.
 ```
 
 """
-function paramdiagnostics(vec::AbstractVector{T}) where {T<:Real}
-    vals = (
-        Mean=Statistics.mean(vec),
-        MCSE=MCMCDiagnosticTools.mcse(vec),
-        StdDev=Statistics.std(vec),
-    )
-    return vals
-end
 function paramdiagnostics(arr::Array{T,3}) where {T<:Real}
-    return map(
-        iter -> paramdiagnostics(vec(view(arr, :, :, iter))), Base.OneTo(size(arr, 3))
+    # Compute statistics
+    _mean = map(iter -> Statistics.mean(view(arr, :, :, iter)), Base.OneTo(size(arr, 3)) )
+    _std = map(iter -> Statistics.std(view(arr, :, :, iter)), Base.OneTo(size(arr, 3)) )
+    _mcse = MCMCDiagnosticTools.mcse(arr)
+    # Assign NT
+    return map(iter -> (
+        Mean=_mean[iter],
+        MCSE=_std[iter],
+        StdDev=_mcse[iter],
+        ), eachindex(_mean)
     )
 end
 
@@ -92,11 +87,11 @@ Merge all statistics for all parameter.
 ```
 
 """
-function mergediagnostics(paramdiagnostic, chainparamdiagnostic, paramquantiles)
+function mergediagnostics(paramdiagnostic, paramquantiles, chainparamdiagnostic)
     Nparam = size(paramdiagnostic, 1)
     return map(
         param -> merge(
-            paramdiagnostic[param], chainparamdiagnostic[param], paramquantiles[param]
+            paramdiagnostic[param], paramquantiles[param], chainparamdiagnostic[param]
         ),
         Base.OneTo(Nparam),
     )
@@ -157,20 +152,15 @@ function chainsummary(
         return stuck, paramchain, nothing
     end
     ## Compute summary statistics
-    #!NOTE If more than 1 chain used, can use cross-chain diagnostics
-    if Nchains > 1
-        #NOTE: Most of the computing time of the function happens here
-        chainparamdiagnostic = chainparamdiagnostics(arr3D, computingtime)
-    else
-        chainparamdiagnostic = singlechaindiagnostics(arr3D, Nparams)
-    end
+    chainparamdiagnostic = chainparamdiagnostics(arr3D, computingtime)
     paramdiagnostic = paramdiagnostics(arr3D)
     paramquantile = paramquantiles(arr3D, printdefault)
-    diag = mergediagnostics(paramdiagnostic, chainparamdiagnostic, paramquantile)
+    diag = mergediagnostics(paramdiagnostic, paramquantile, chainparamdiagnostic)
     ## Assign row and header variables for table
-    statsnames = union(keys(paramdiagnostic[begin]), keys(chainparamdiagnostic[begin]))
+    paramstatsnames = keys(paramdiagnostic[begin])
+    chainstatsnames = keys(chainparamdiagnostic[begin])
     quantilenames = string.("Q", round.(quantiles .* 100; digits=1))
-    tablenames = union(string.(statsnames), quantilenames)
+    tablenames = union(string.(paramstatsnames), quantilenames, string.(chainstatsnames),)
     Nstats = length(tablenames)
     ## Create table
     _reconstruct = ModelWrappers.ReConstructor(diag)
