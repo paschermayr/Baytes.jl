@@ -1,7 +1,7 @@
 name = "Baytes"
 uuid = "72ddfcfc-6e9d-43df-829b-7aed7c549d4f"
 authors = ["Patrick Aschermayr <p.aschermayr@gmail.com>"]
-version = "0.3.5"
+version = "0.3.6"
 
 [deps]
 ArgCheck = "dce04be8-c92d-5529-be00-80e4d2c0e197"
@@ -18,12 +18,12 @@ ModelWrappers = "44c54197-9f56-47cc-9960-7f2e20bfb0d6"
 PrettyTables = "08abe8d2-0d0c-5749-adfa-8a2ac140af0d"
 ProgressMeter = "92933f4c-e287-5a05-a399-4b506db050ca"
 Random = "9a3f8284-a2c9-5f02-9a11-845980a1fd5c"
+SimpleUnPack = "ce78b400-467f-4804-87d8-8f486da07d0a"
 Statistics = "10745b16-79ce-11e8-11f9-7d13ad32a3b2"
-UnPack = "3a884ed6-31ef-47d7-9d2a-63182c4928ed"
 
 [compat]
 ArgCheck = "2"
-BaytesCore = "0.1"
+BaytesCore = "0.2"
 BaytesFilters = "0.3"
 BaytesMCMC = "0.3"
 BaytesPMCMC = "0.3"
@@ -34,12 +34,12 @@ MCMCDiagnosticTools = "0.3"
 ModelWrappers = "0.4"
 PrettyTables = "2"
 ProgressMeter = "1.7"
-UnPack = "1"
-julia = "^1.7"
+SimpleUnPack = "1"
+julia = "^1.8"
 
 [extras]
-Test = "8dfed614-e22c-5e08-85e1-65c5234f0b40"
 Distributions = "31c24e10-a181-5473-b8eb-7969acd0382f"
+Test = "8dfed614-e22c-5e08-85e1-65c5234f0b40"
 
 [targets]
 test = ["Test", "Distributions"]

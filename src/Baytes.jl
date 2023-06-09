@@ -72,7 +72,7 @@ import Base: Base, summary
 using DocStringExtensions:
     DocStringExtensions, TYPEDEF, TYPEDFIELDS, FIELDS, SIGNATURES, FUNCTIONNAME
 using ArgCheck: ArgCheck, @argcheck
-using UnPack: UnPack, @unpack, @pack!
+using SimpleUnPack: SimpleUnPack, @unpack, @pack!
 using Random: Random, AbstractRNG, GLOBAL_RNG, randexp
 using ProgressMeter: ProgressMeter, @showprogress, Progress, next!
 # Post-Processing

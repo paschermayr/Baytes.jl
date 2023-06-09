@@ -2,7 +2,7 @@
 # Import External Packages
 using Test
 using Random: Random, AbstractRNG, seed!
-using UnPack: UnPack, @unpack, @pack!
+using SimpleUnPack: SimpleUnPack, @unpack, @pack!
 using Distributions
 
 ############################################################################################
