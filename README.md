@@ -11,7 +11,7 @@
 [![Coverage](https://codecov.io/gh/paschermayr/Baytes.jl/branch/main/graph/badge.svg)](https://codecov.io/gh/paschermayr/Baytes.jl)
 [![ColPrac: Contributor's Guide on Collaborative Practices for Community Packages](https://img.shields.io/badge/ColPrac-Contributor's%20Guide-blueviolet)](https://github.com/SciML/ColPrac)
 
-Baytes.jl is a sampling library to perform Monte Carlo proposal steps. It consists of several sub-libraries, such as [BaytesMCMC.jl](https://github.com/paschermayr/BaytesMCMC.jl), [BaytesFilters.jl](https://github.com/paschermayr/BaytesFilters.jl), [BaytesPMCMC.jl](https://github.com/paschermayr/BaytesPMCMC.jl) and [BaytesSMC.jl](https://github.com/paschermayr/BaytesSMC.jl), and provides an interface to combine kernels from these libraries.
+Baytes.jl is a sampling library to perform Markov Chain and Sequential Monte Carlo proposal steps. It consists of several sub-libraries, such as [BaytesMCMC.jl](https://github.com/paschermayr/BaytesMCMC.jl), [BaytesFilters.jl](https://github.com/paschermayr/BaytesFilters.jl), [BaytesPMCMC.jl](https://github.com/paschermayr/BaytesPMCMC.jl) and [BaytesSMC.jl](https://github.com/paschermayr/BaytesSMC.jl), and provides an interface to combine kernels from these libraries.
 
 ## Introduction
 
