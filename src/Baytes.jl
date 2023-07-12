@@ -48,6 +48,8 @@ using ModelWrappers:
     ModelWrapper,
     Tagged,
     Objective,
+    length_constrained, 
+    length_unconstrained,
 #=    DiffObjective,
     AbstractDifferentiableTune,
     ℓObjectiveResult,

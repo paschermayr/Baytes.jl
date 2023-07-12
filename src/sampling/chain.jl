@@ -141,7 +141,7 @@ function chainsummary(
     @unpack Ndigits, quantiles = printdefault
     @unpack progress = trace.summary
     @unpack tagged, paramnames = transform
-    Nparams = length(tagged)
+    Nparams = length_constrained(tagged)
     Nchains = length(transform.chains)
     ## Flatten parameter to 3D array
     computingtime = progress.enabled ? (progress.tlast - progress.tinit) : NaN
