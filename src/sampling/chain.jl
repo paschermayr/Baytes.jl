@@ -146,11 +146,14 @@ function chainsummary(
     ## Flatten parameter to 3D array
     computingtime = progress.enabled ? (progress.tlast - progress.tinit) : NaN
     arr3D = trace_to_3DArray(trace, transform)
+#=    
+#NOTE: New Rhat/ESS implementation should just default to NaN if parameter are fixed, hence we can keep them in the output diagnostics    
     ## Check if any MCMC sampler was stuck in any chain, in which case chainsummary will be skipped
     stuck, paramchain = is_stuck(arr3D)
     if stuck
         return stuck, paramchain, nothing
     end
+=#
     ## Compute summary statistics
     chainparamdiagnostic = chainparamdiagnostics(arr3D, computingtime)
     paramdiagnostic = paramdiagnostics(arr3D)
