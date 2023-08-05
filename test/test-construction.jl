@@ -59,6 +59,17 @@ tempermethod = tempermethods[iter]
                 post2Dᵤ = trace_to_2DArrayᵤ(trace, transform)
                 @test size(post2D) == size(post2Dᵤ)
 
+###                
+                #Check if we can also work with single chain values
+                _vals = trace.val[1]
+                _tagged = _obj.tagged
+                _transform = TraceTransform(_vals, _tagged)
+                _vals2d = val_to_2DArray(_vals, _transform)
+                _vals2dᵤ = val_to_2DArrayᵤ(_vals, _transform)
+                _tup2d = Array2D_to_NamedTuple(_vals2d, _tagged)
+        
+###
+
                 #Check trace transforms
                 g_vals = get_chainvals(trace, transform)
                 m_vals = merge_chainvals(trace, transform)

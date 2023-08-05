@@ -360,17 +360,98 @@ function get_chaindiagnostics(trace::Trace, transform::TraceTransform)
     return [ map(algorithm -> get_chaindiagnostics(trace.diagnostics, chain, algorithm, effective_iterations), algorithms) for chain in chains]
 end
 
+
+################################################################################
+# !Note: Add a couple of functions so that one can work with propose!() output only from a single kernel call
+############################################################################################
+
+function TraceTransform(
+    vals::AbstractVector{<:NamedTuple},
+    tagged::Tagged,
+    info::TransformInfo = TransformInfo(
+        [1],
+        [1],
+        0,
+        1,
+        length(vals)
+    )
+)
+    @unpack chains, algorithms, burnin, thinning, maxiterations = info
+    paramnames = ModelWrappers.paramnames(
+        tagged.info.reconstruct.default, tagged.info.transform.constraint, subset(vals[begin], tagged.parameter)
+    )
+    return TraceTransform(
+        tagged,
+        paramnames,
+        chains, algorithms, burnin, thinning, maxiterations
+    )
+end
+
+function val_to_2DArray(
+    vals::AbstractVector{<:NamedTuple},
+    transform::TraceTransform
+)
+    ## Get trace information
+    @unpack tagged, chains, effective_iterations = transform
+    ## Preallocate array
+    mcmcchain = zeros(length(effective_iterations), length_constrained(tagged))
+    ## Flatten corresponding parameter
+    for iter in effective_iterations
+        mcmcchain[iter,:] .= flatten(tagged.info.reconstruct, subset(vals[iter], tagged.parameter))
+    end
+    ## Return MCMCChain
+    return mcmcchain
+end
+
+function Array2D_to_NamedTuple(
+    vals2d::Matrix{<:Real},
+    tagged::Tagged
+)
+    # Assign range and length of parameter
+    _lengths = tagged.info.reconstruct.unflatten.strict._unflatten.lngth
+    _sz = tagged.info.reconstruct.unflatten.strict._unflatten.sz
+    _range = [(_sz[i] - _lengths[i] + 1):_sz[i] for i in eachindex(_sz)]
+    _names = keys(tagged.parameter)
+    # Create NamedTuple
+    nt2d = NamedTuple{_names}(map(iter -> view(vals2d, :, _range[iter]), eachindex(_range)))
+    # Return Output
+    return nt2d
+end
+
+function val_to_2DArrayᵤ(
+    vals::AbstractVector{<:NamedTuple},
+    transform::TraceTransform
+)
+    ## Get trace information
+    @unpack tagged, chains, effective_iterations = transform
+    ## Preallocate array
+    mcmcchain = zeros(length(effective_iterations), length_unconstrained(tagged))
+    ## Flatten corresponding parameter
+    for iter in effective_iterations
+        mcmcchain[iter,:] .= ModelWrappers.unconstrain_flatten(tagged.info, subset(vals[iter], tagged.parameter))
+    end
+    ## Return MCMCChain
+    return mcmcchain
+end
+
 ############################################################################################
 #export
 export
     TransformInfo,
     TraceTransform,
+
     trace_to_3DArray,
     trace_to_2DArray,
     trace_to_3DArrayᵤ,
     trace_to_2DArrayᵤ,
     trace_to_posteriormean,
+
     get_chainvals,
     get_chaindiagnostics,
     merge_chainvals,
-    flatten_chainvals
+    flatten_chainvals,
+
+    val_to_2DArray,
+    val_to_2DArrayᵤ,
+    Array2D_to_NamedTuple
+
