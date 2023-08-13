@@ -10,7 +10,11 @@ using Distributions
 using
     ModelWrappers,
     Baytes
+using BaytesOptim
+    
+#include("D:/OneDrive/1_Life/1_Git/0_Dev/Julia/modules/Baytes.jl/src/Baytes.jl")
 #using .Baytes
+
 ############################################################################################
 # Include Files
 include("testhelper/TestHelper.jl")

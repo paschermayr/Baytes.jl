@@ -275,6 +275,118 @@ end
 end
 
 ############################################################################################
+#tempermethod = tempermethods[1]
+#iter = length(objectives)
+using Optim, NLSolversBase
+@testset "Sampling, BaytesOptim" begin
+    for tempermethod in tempermethods
+        for iter in eachindex(objectives)
+            #println(tempermethod, " ", iter)
+                sampledefault = SampleDefault(;
+                    dataformat=Batch(),
+                    tempering=deepcopy(tempermethod), #IterationTempering(Float64, UpdateFalse(), 1.0, 1000),
+                    chains=4,
+                    iterations=100,
+                    burnin=max(1, Int64(floor(10/10))),
+                    thinning = 1,
+                    safeoutput=false,
+                    printoutput=false,
+                    printdefault=PrintDefault(),
+                    report=ProgressReport(;
+                        bar=false,
+                        log=SilentLog()
+                    ),
+                )
+                temperupdate = sampledefault.tempering.adaption
+                _obj = deepcopy(objectives[iter])
+                _flattentype = _obj.model.info.reconstruct.default.output
+## Optimization
+                def = OptimDefault(; 
+                kernel = (;
+                    magnitude_penalty = 1e-4,
+                    iterations = 1000
+                    )
+                )
+                opt = Optimizer(
+                _rng,
+                OptimLBFG,
+                _obj,
+                def,
+                )
+## Test Constructor
+                mcmc = MCMC(NUTS,(:σ,); stepsize = ConfigStepsize(;stepsizeadaption = UpdateFalse()))
+                _oc = OptimConstructor(OptimLBFG, :μ, 
+                OptimDefault(; 
+                    kernel = (;
+                        iterations = 123)
+                ) 
+                )
+                Optimizer(OptimLBFG, :μ)
+                trace, algorithms = sample(_rng, _obj.model, _obj.data, _oc; default = deepcopy(sampledefault))
+
+## Inference Section
+                transform = Baytes.TraceTransform(trace, _obj.model)
+                postmean = trace_to_posteriormean(trace, transform)
+
+                post3D = trace_to_3DArray(trace, transform)
+                post3Dᵤ = trace_to_3DArrayᵤ(trace, transform)
+                @test size(post3D) == size(post3Dᵤ)
+                post2D = trace_to_2DArray(trace, transform)
+                post2Dᵤ = trace_to_2DArrayᵤ(trace, transform)
+                @test size(post2D) == size(post2Dᵤ)        
+##
+                #Check trace transforms
+                g_vals = get_chainvals(trace, transform)
+                m_vals = merge_chainvals(trace, transform)
+                f_vals = flatten_chainvals(trace, transform)
+                @test sum( map(val -> length(val), g_vals) ) == length(m_vals) == sum( map(val -> length(val), f_vals) )
+
+                #Check printing commands
+                printchainsummary(trace, transform, Val(:text))
+                printchainsummary(_obj.model, trace, transform, Val(:text))
+#=
+                ## SMC
+                ibis = SMCConstructor(_oc, SMCDefault(jitterthreshold=0.99, resamplingthreshold=1.0))
+                trace, algorithms = sample(_rng, _obj.model, _obj.data, ibis; default = deepcopy(sampledefault))
+                ## If single mcmc kernel assigned, can capture previous results
+                @test isa(trace.summary.info.captured, UpdateFalse)
+                ## Continue sampling
+                newdat = randn(_rng, length(_obj.data)+100)
+                trace2, algorithms2 = sample!(100, _rng, _obj.model, newdat, trace, algorithms)
+                @test isa(trace2.summary.info.captured, UpdateFalse)
+=#                
+## Combinations
+                trace, algorithms = sample(_rng, _obj.model, _obj.data, mcmc, _oc; default = deepcopy(sampledefault))
+                transform = Baytes.TraceTransform(trace, _obj.model)
+                printchainsummary(trace, transform, Val(:text))
+                m_vals = merge_chainvals(trace, transform)
+                ## Continue sampling
+                newdat = randn(_rng, length(_obj.data)+100)
+                trace2, algorithms2 = sample!(100, _rng, _obj.model, newdat, trace, algorithms)
+            end
+    end
+end
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+############################################################################################
 #Utility
 @testset "Utility, maxiterations" begin
     Nstart = 10^2
