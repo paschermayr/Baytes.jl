@@ -16,6 +16,7 @@ tempermethods = [
 iter = 2
 tempermethod = tempermethods[iter]
 =#
+
 ############################################################################################
 @testset "Sampling, type conversion" begin
     for tempermethod in tempermethods
@@ -323,7 +324,8 @@ using Optim, NLSolversBase
                 )
                 Optimizer(OptimLBFG, :μ)
                 trace, algorithms = sample(_rng, _obj.model, _obj.data, _oc; default = deepcopy(sampledefault))
-
+                ## If single optimizer kernel assigned, can capture previous results
+                @test isa(trace.summary.info.captured, typeof(temperupdate))
 ## Inference Section
                 transform = Baytes.TraceTransform(trace, _obj.model)
                 postmean = trace_to_posteriormean(trace, transform)
@@ -344,17 +346,19 @@ using Optim, NLSolversBase
                 #Check printing commands
                 printchainsummary(trace, transform, Val(:text))
                 printchainsummary(_obj.model, trace, transform, Val(:text))
-#=
-                ## SMC
+
+## SMC via IBIS
                 ibis = SMCConstructor(_oc, SMCDefault(jitterthreshold=0.99, resamplingthreshold=1.0))
                 trace, algorithms = sample(_rng, _obj.model, _obj.data, ibis; default = deepcopy(sampledefault))
-                ## If single mcmc kernel assigned, can capture previous results
+                ## Always update Gradient Result if new data is added
+                    #!NOTE: But after first iteration, can capture results
                 @test isa(trace.summary.info.captured, UpdateFalse)
                 ## Continue sampling
                 newdat = randn(_rng, length(_obj.data)+100)
                 trace2, algorithms2 = sample!(100, _rng, _obj.model, newdat, trace, algorithms)
+                    #!NOTE: But after first iteration, can capture results
                 @test isa(trace2.summary.info.captured, UpdateFalse)
-=#                
+                
 ## Combinations
                 trace, algorithms = sample(_rng, _obj.model, _obj.data, mcmc, _oc; default = deepcopy(sampledefault))
                 transform = Baytes.TraceTransform(trace, _obj.model)
@@ -366,25 +370,6 @@ using Optim, NLSolversBase
             end
     end
 end
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 
 ############################################################################################
 #Utility

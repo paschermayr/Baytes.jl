@@ -67,7 +67,7 @@ using ModelWrappers:
     UnflattenStrict,
     UnflattenFlexible
 
-using BaytesMCMC, BaytesFilters, BaytesPMCMC, BaytesSMC
+using BaytesMCMC, BaytesFilters, BaytesPMCMC, BaytesSMC, BaytesOptim
 
 #Utility tools
 import Base: Base, summary
@@ -195,6 +195,11 @@ export
     ParticleMetropolis,
     ParticleGibbs,
 
+    ## Optimizer
+    Optimizer, 
+    OptimConstructor,
+    OptimDefault, 
+    
     ## BaytesSMC
     SMC,
     SMCDefault,

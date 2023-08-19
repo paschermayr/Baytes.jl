@@ -72,13 +72,13 @@ Check if we can capture results from last proposal step. Typically only possible
 """
 function update(datatune::DataTune, temperingadaption::B, smc::SMCConstructor) where {B<:BaytesCore.UpdateBool}
     #!NOTE: If a single SMC constructor is used, we can capture previous results and do not need to update sampler before new iteration.
-    #!NOTE: SMC only updates parameter if UpdateTrue(). Log-target/gradients will always be updated if jitter step applied.
+    #!NOTE: SMC only updates parameter if UpdateTrue(). Log-target/gradients will always be updated if jitter step applied in either case
     return BaytesCore.UpdateFalse()
 end
-function update(datatune::DataTune{<:B}, temperingadaption::BaytesCore.UpdateFalse, mcmc::MCMCConstructor) where {B<:Batch}
-    #!NOTE: If a MCMC constructor is used and no tempering is applied, we can capture previous results and do not need to update sampler before new iteration.
-    #!NOTE: This only holds for Batch data in MCMC case
-    #!NOTE: MCMC updates log target evaluation and eventual gradients if UpdateTrue()
+function update(datatune::DataTune{<:B}, temperingadaption::BaytesCore.UpdateFalse, algorithm::C) where {B<:Batch, C<:Union{MCMCConstructor, OptimConstructor}}
+    #!NOTE: If a MCMC/Optimizer constructor is used and no tempering is applied, we can capture previous results and do not need to update sampler before new iteration.
+    #!NOTE: This only holds for Batch data in MCMC/Optimizer case
+    #!NOTE: MCMC/Optimizer updates log target evaluation and gradients if UpdateTrue()
     return BaytesCore.UpdateFalse()
 end
 function update(datatune::DataTune, temperingadaption, args...)
