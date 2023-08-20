@@ -11,7 +11,8 @@ using
     ModelWrappers,
     Baytes
 using BaytesOptim
-    
+using ForwardDiff    
+
 #include("D:/OneDrive/1_Life/1_Git/0_Dev/Julia/modules/Baytes.jl/src/Baytes.jl")
 #using .Baytes
 
