@@ -144,6 +144,9 @@ export
     ParticleFilterDefault,
     ParticleFilterConstructor,
     ParticleFilterMemory,
+    dynamics, 
+    dynamics_propose,
+    dynamics_propagate,
 
     Markov,
     SemiMarkov,
