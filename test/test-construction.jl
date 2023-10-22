@@ -59,6 +59,8 @@ tempermethod = tempermethods[iter]
                 post2D = trace_to_2DArray(trace, transform)
                 post2Dᵤ = trace_to_2DArrayᵤ(trace, transform)
                 @test size(post2D) == size(post2Dᵤ)
+                # Check if TransformInfo can be inferred from trace
+                TransformInfo(trace)
 
 ###                
                 #Check if we can also work with single chain values

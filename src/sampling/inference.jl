@@ -52,6 +52,22 @@ function TransformInfo(
 )
 end
 
+function TransformInfo(trace::Trace; 
+        chains = collect(Base.OneTo(trace.summary.info.Nchains)),
+        algorithms = collect(Base.OneTo(trace.summary.info.Nalgorithms)),
+        burnin = trace.summary.info.burnin,
+        thinning = trace.summary.info.thinning,
+        maxiterations = trace.summary.info.iterations
+    )
+    return TransformInfo(
+        chains,
+        algorithms,
+        burnin,
+        thinning,
+        maxiterations
+    )
+end
+
 ################################################################################
 """
 $(TYPEDEF)
