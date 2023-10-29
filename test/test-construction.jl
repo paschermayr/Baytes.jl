@@ -374,6 +374,11 @@ using Optim, NLSolversBase
 end
 
 ############################################################################################
+# Check if Custom Sampler works
+
+
+
+############################################################################################
 #Utility
 @testset "Utility, maxiterations" begin
     Nstart = 10^2

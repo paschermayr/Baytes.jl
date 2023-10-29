@@ -3,7 +3,21 @@ module Baytes
 
 ################################################################################
 #Import modules
-import BaytesCore: BaytesCore, update!, infer, results, init, init!, propose, propose!, propagate!
+import BaytesCore: 
+    BaytesCore, 
+    update!, 
+    infer, 
+    results, 
+    init, 
+    init!, 
+    propose, 
+    propose!,
+    propagate!,
+    generate, 
+    generate_showvalues,
+    get_result, 
+    result! 
+
 using BaytesCore:
     BaytesCore,
     AbstractAlgorithm,
@@ -25,7 +39,6 @@ using BaytesCore:
     Batch,
     SubSampled,
     adjust,
-    generate_showvalues,
     TemperingMethod,
     IterationTempering,
     JointTempering,
@@ -41,7 +54,8 @@ using BaytesCore:
 import ModelWrappers:
     ModelWrappers,
     sample,
-    sample!
+    sample!,
+    predict
 
 using ModelWrappers:
     ModelWrappers,
@@ -66,6 +80,12 @@ using ModelWrappers:
     UnflattenTypes,
     UnflattenStrict,
     UnflattenFlexible
+#=
+using BaytesDiff: 
+    BaytesDiff, 
+    ℓObjectiveResult,
+    ℓDensityResult
+=#
 
 using BaytesMCMC, BaytesFilters, BaytesPMCMC, BaytesSMC, BaytesOptim
 
@@ -202,7 +222,11 @@ export
     Optimizer, 
     OptimConstructor,
     OptimDefault, 
-    
+    OptimLBFG,
+    CustomAlgorithmDefault,
+    CustomAlgorithm,
+    CustomAlgorithmConstructor,
+
     ## BaytesSMC
     SMC,
     SMCDefault,

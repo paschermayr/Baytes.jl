@@ -24,4 +24,5 @@ include("testhelper/TestHelper.jl")
 # Run Tests
 @testset "All tests" begin
     include("test-construction.jl")
+    include("test-custom.jl")
 end
