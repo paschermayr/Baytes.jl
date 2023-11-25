@@ -295,6 +295,27 @@ function trace_to_posteriormean(
     )
 end
 
+"""
+$(SIGNATURES)
+Change trace.val to 3d Array and return Posterior mean as NamedTuple and as Vector for each parameter for each MCMC iteration across MCMC kernels
+
+# Examples
+```julia
+```
+
+"""
+function trace_to_crosschainmean(trace, transform)
+    @unpack tagged = transform
+    # Flatten Trace of different chains to 3-D Array
+    val3d = trace_to_3DArray(trace, transform)
+    # Get Average across chain parameter for each smc/mcmc iteration
+    crosschain_vec = [ map(iter -> mean(view(val3d, time, :, iter)), Base.OneTo(size(val3d, 3))) for time in Base.OneTo(size(val3d, 1)) ]
+    # Map back each vector to a NamedTuple with the across chain parameter mean estimates
+    crosschain_nt = [ ModelWrappers.unflatten(tagged.info.reconstruct, crosschain_vec[iter]) for iter in eachindex(crosschain_vec)]
+    # Return vector and NamedTuple
+    return crosschain_vec, crosschain_nt
+end
+
 ############################################################################################
 """
 $(SIGNATURES)
@@ -461,6 +482,7 @@ export
     trace_to_3DArrayᵤ,
     trace_to_2DArrayᵤ,
     trace_to_posteriormean,
+    trace_to_crosschainmean,
 
     get_chainvals,
     get_chaindiagnostics,
@@ -470,4 +492,5 @@ export
     val_to_2DArray,
     val_to_2DArrayᵤ,
     Array2D_to_NamedTuple
+#    array_to_posteriormean
 

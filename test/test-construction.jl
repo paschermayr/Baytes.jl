@@ -52,6 +52,7 @@ tempermethod = tempermethods[iter]
                 ## Inference Section
                 transform = Baytes.TraceTransform(trace, _obj.model)
                 postmean = trace_to_posteriormean(trace, transform)
+                trace_to_crosschainmean(trace, transform)
 
                 post3D = trace_to_3DArray(trace, transform)
                 post3Dᵤ = trace_to_3DArrayᵤ(trace, transform)
@@ -70,7 +71,7 @@ tempermethod = tempermethods[iter]
                 _vals2d = val_to_2DArray(_vals, _transform)
                 _vals2dᵤ = val_to_2DArrayᵤ(_vals, _transform)
                 _tup2d = Array2D_to_NamedTuple(_vals2d, _tagged)
-        
+                
 ###
 
                 #Check trace transforms
@@ -331,6 +332,7 @@ using Optim, NLSolversBase
 ## Inference Section
                 transform = Baytes.TraceTransform(trace, _obj.model)
                 postmean = trace_to_posteriormean(trace, transform)
+                trace_to_crosschainmean(trace, transform)
 
                 post3D = trace_to_3DArray(trace, transform)
                 post3Dᵤ = trace_to_3DArrayᵤ(trace, transform)
